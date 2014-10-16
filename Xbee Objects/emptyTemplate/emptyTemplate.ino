@@ -17,7 +17,6 @@ void loop()
 {
   //This is the function that we call in each loop and let you receive key value
   apioReceive();
-  
   ///Azioni che devono generare un output.
   
   /*---------------------------*/
