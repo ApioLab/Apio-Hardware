@@ -28,4 +28,4 @@ void loop(){
 <p>And that's all.</p>
 <p>Now you have all the knowledge to codify all of your project with APIO.</p>
 <h4>What are you waiting for?</h4>
-<p>Choose your communication channel, see the EXAMPLE and start create your objects</p>
+<p>Choose your communication channel, see the EXAMPLE and create your objects</p>
