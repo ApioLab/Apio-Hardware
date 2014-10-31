@@ -11,7 +11,8 @@ HOW APIO ENCODING WORKS
 <p>So if assume that I have created a LED and I want to codify that in APIO, I have a function like this:
 <code>onoff(pin, value)</code> that will write on the pin of the LED.</p>
 <p>So in the loop of the microcontroller I will write:</p>
-<code>
+
+```sh
 void loop(){
   if(property=="onoff"){
     if(value=="1") {
@@ -22,7 +23,8 @@ void loop(){
     }
   }
 }
-</code>
+```
+
 <p>In this simple way I have created the firmware for the Microcontroller that is compatible with APIO systems. Now you have all the knowledge to codify all of your project with APIO.</p>
 <h4>What are you waiting for?</h4>
 <p>Choose your communication channel, see the EXAMPLE and start create your objects</p>
