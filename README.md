@@ -25,6 +25,7 @@ void loop(){
 }
 ```
 
-<p>In this simple way I have created the firmware for the Microcontroller that is compatible with APIO systems. Now you have all the knowledge to codify all of your project with APIO.</p>
+<p>And that's all.</p>
+<p>Now you have all the knowledge to codify all of your project with APIO.</p>
 <h4>What are you waiting for?</h4>
 <p>Choose your communication channel, see the EXAMPLE and start create your objects</p>
