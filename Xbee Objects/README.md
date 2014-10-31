@@ -12,6 +12,8 @@
 <li>Disconnect the XBEE</li>
 <li>Connect XBee to your Arduino</li>
 <li>Duplicate emptyTemplate and rename it with the name you want</li>
-<li>Use ApioCodify to write the sketch for example see the example folders.</li>
+<li>Use Apio Encoding to write the sketch.</li>
 </ul>
 </p>
+
+<p>If you want to be inspired see the examle folder</p>
