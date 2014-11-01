@@ -1,4 +1,5 @@
 /*
+Sti cazzi
 libreria contenente le variabili generali 
 e funzioni utili
 */
