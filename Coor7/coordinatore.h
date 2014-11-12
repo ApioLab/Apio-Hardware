@@ -324,14 +324,14 @@ static bool LwmInput(NWK_DataInd_t *ind)
 bool XBeeOutput_62(String devAddr, String toSend)
 {   
   Serial1.println(toSend);
-  char toSend_char[100]; //beacause 
+  char toSend_char[100]; //beacause the ZBTxRequest needs a uint8_t*
   toSend.toCharArray(toSend_char, 100);
   
   uint32_t indirizzo = stringHEX_To_uint32_t(devAddr);
   
-  XBeeAddress64 addr64 = XBeeAddress64(0x0013A200, indirizzo);//creo l indirizzo
+  XBeeAddress64 addr64 = XBeeAddress64(0x0013A200, indirizzo);
   
-  zbTx = ZBTxRequest(addr64, (uint8_t*)(toSend_char), strlen(toSend_char)); //compilazione della struct da inviare (strlen NON include anche '\0')
+  zbTx = ZBTxRequest(addr64, (uint8_t*)(toSend_char), strlen(toSend_char)); 
   
   xbee.send(zbTx);
   
@@ -388,8 +388,7 @@ bool XBeeOutput_62(String devAddr, String toSend)
   }
 }
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-//crea i pacchetti da inviare controllandone la lughezza 
-//poi usa XbeeOutput per inviare il sigolo pacchetto
+//Create packages to be sent by checking the total length, then use XbeeOutput to send the package sigolo
 void XBeeOutput()
 {
      //Serial1.println("XbeeOutput");//debug
@@ -397,9 +396,9 @@ void XBeeOutput()
       int j=0;
       
       String temp1 , temp2;
-      //i primi property valora da inviare (j=0)
+      
       temp1=deviceAddr+":";
-      //Inserisco la prima coppia.
+      //the first property value to be send (j=0)
       temp2=propertyArray[j]+":"+valueArray[j]+"-";
       //Serial1.print("numberkey: ");//debug
       //Serial1.println(numberkey);//debug
@@ -407,7 +406,8 @@ void XBeeOutput()
       while(j<numberkey)
       {
 
-        //aggiungo le coppie finche la lunghezza è minore o uguale di 62 oppure sono finite le coppie da aggiungere(j=numberkey)
+        //add the pairs until the length is less than or equal to 84, or are over the pairs to be added(j=numberkey)
+       
         while( (temp1+temp2).length()<=84 && j<numberkey) 
         {
           j++;
@@ -416,10 +416,10 @@ void XBeeOutput()
           //Serial1.println(temp1);
         }
         
-        //invio effettivo 
+        //actual sending of data
         XBeeOutput_62(deviceAddr , temp1);
        
-        //re-inizializzazione
+        //re-inizialization
         temp1=deviceAddr+":";
    
                       
@@ -437,9 +437,9 @@ bool XBeeInput()
   {
     char bufferX[62];
     String receivedX;
-    if (xbee.getResponse().getApiId() == ZB_RX_RESPONSE) //se è vero ho ricevuto un pacchetto zb rx
+    if (xbee.getResponse().getApiId() == ZB_RX_RESPONSE) //if it's true i have a zb-rx packet
     {
-       xbee.getResponse().getZBRxResponse(zbRx); //riempio la classe zb rx
+       xbee.getResponse().getZBRxResponse(zbRx); //fill zb-rx class
        /*flashLed(led, zbRx.getDataLength(), 500);*/
        for (int i = 0; i < zbRx.getDataLength(); i++) 
        {
@@ -462,17 +462,18 @@ bool XBeeInput()
 
 void ApioCoordinatorSetup()
 {
-  Serial1.begin(9600); //comunicazione con il server
+  Serial1.begin(9600); //for comucicate with the web-server
   
   //setup Xbee
-  Serial.begin(9600);//per la comunicazione con l xbee
+  Serial.begin(9600);//for comunicate with  xbee
   xbee.setSerial(Serial);
 
   //setup Lwm
-  //---------appunti------------//
-  //in config.h NWK_ACK_WAIT_TIME è stato impostato a 5000;
-  //nelle funzioni Lwm_output utilizzare la costante (file nwk.h della libreria LW_Mesh) #define NWK_MAX_PAYLOAD_SIZE            (127 - 16/*NwkFrameHeader_t*/ - 2/*crc*/)
-  //utilizzare le costanti definite in config.h
+  //---------note------------//
+  //in config.h NWK_ACK_WAIT_TIME was set at 5000;
+  //da fare:
+  //in the Lwm_output function use the costant ( file nwk.h della libreria LW_Mesh ) #define NWK_MAX_PAYLOAD_SIZE   (127 - 16/*NwkFrameHeader_t*/ - 2/*crc*/)
+  //use the costants defined in config.h
   //-------fine appunti---------//
   SYS_Init(); //in questa funzione (di libreria LW_Mesh, file sys.c) è stata eliminata sys_Uninit_Arduino() altrimenti non funzionava bene la seriale
   NWK_SetAddr(COORDINATOR_ADDRESS_LWM);
