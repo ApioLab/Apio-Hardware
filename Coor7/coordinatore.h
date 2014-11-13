@@ -109,10 +109,10 @@ uint16_t stringDEC_To_uint16_t(String string) //da cambiare perche per l wm abbi
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //function that saves the pairs (to send!!!) property value in their respective vector propertyArray[ARRAY_LENGTH] e valueArray[ARRAY_LENGTH];
-void divide_string(String completeString)  
+void divide_string(String stringToSplit)  
 {
   
-  int strlen=completeString.length();
+  int strlen=stringToSplit.length();
 
 
   int i,j; //counter
@@ -127,15 +127,15 @@ void divide_string(String completeString)
   //counting pairs(property:value) to send
   for(i=0; i<strlen ; i++)
   {
-    if(completeString.charAt(i)=='-')
+    if(stringToSplit.charAt(i)=='-')
       numberkey++;
   }
   
   //-----------deviceAddr----------------  
   
-  for(i=0; completeString.charAt(i)!=':' && i<strlen ;i++)
+  for(i=0; stringToSplit.charAt(i)!=':' && i<strlen ;i++)
   {
-    deviceAddr += String(completeString.charAt(i));
+    deviceAddr += String(stringToSplit.charAt(i));
   }
 
  //Cycling this for all property and values
@@ -143,16 +143,16 @@ void divide_string(String completeString)
   {
     //-----------property----------------
 
-    for(i++; completeString.charAt(i)!=':' && i<strlen ;i++)
+    for(i++; stringToSplit.charAt(i)!=':' && i<strlen ;i++)
     {
-      propertyArray[j] += String(completeString.charAt(i));
+      propertyArray[j] += String(stringToSplit.charAt(i));
     }
     
     //-----------value----------------  
     
-    for(i++; completeString.charAt(i)!='-' && i<strlen ;i++)
+    for(i++; stringToSplit.charAt(i)!='-' && i<strlen ;i++)
     {
-      valueArray[j] += String(completeString.charAt(i)); 
+      valueArray[j] += String(stringToSplit.charAt(i)); 
     }
 
   }
