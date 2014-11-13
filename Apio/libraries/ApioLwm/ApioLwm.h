@@ -1,89 +1,115 @@
-#ifndef ApioLwm_h
-#define ApioLwm_h
+/*---------------------constants definition-----------------------------*/
 
-#include "Arduino.h"
-#include <inttypes.h>
-/*---------------------dichiarazioni costanti-----------------------------*/
+#define COORDINATOR_ADDRESS_LWM  0
+#define ARRAY_LENGTH 10
+#define OBJECT_ADDRESS  34
 
-#define INDIRIZZO_COORDINATORE  1
-#define ARRAY_LENGTH 20
-#define INDIRIZZO_OGGETTO  2
+/*---------------------variables definition-----------------------------*/
 
-/*---------------------dichiarazioni variabili-----------------------------*/
-
-String dispositivo;
-String proprieta; // variabili che sono da processare nel loop in corso
-String valore;  // variabili che sono da processare nel loop in corso
-//String content; //contiene tutta la stringa: dispositivo+proprieta1+valore1+...+proprietan+valoren
-String proprietaArray[ARRAY_LENGTH];
-String valoreArray[ARRAY_LENGTH];
+String deviceAddr;
+String property; // variables that are to be processed in the current loop
+String value;  // variables that are to be processed in the current loop
+String propertyArray[ARRAY_LENGTH];
+String valueArray[ARRAY_LENGTH];
 int numberkey=0;
 int j=0;
 
-int ack;
-bool TX_has_gone; //forse queste due sono da mettere e gestire nella libreria?
+
+char sendThis[109]; //if it does not work well declare local
+bool nwkDataReqBusy = false; 
+
+bool TX_has_gone; 
 bool RX_has_arrived;
 
-int flag; //flag che gestisce la logica della select
-int x=0;//serve per tenere traccia dell'attuale chiave valore nel loop
+int flag; //flag which manages the logic of the select
+int x=0;//is used to keep track the current property value in the loop
 
-/*---------------------dichiarazioni funzioni-----------------------------*/
+
+
+/*---------------------function declaration-----------------------------*/
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-//funzione che salva le coppie propireta valore nei rispettivi vettori ovvero proprietaArray[ARRAY_LENGTH] 
-//e valoreArray[ARRAY_LENGTH];
+//function that saves the pairs propiretà: value in their respective vectors or propertyArray [array_length] and valueArray [array_length]
 
-void divide_string(String striga_da_dividere) {
+void divide_string(String stringToSplit) {
   
-  int strlen=striga_da_dividere.length();
-
-  int i; //contatore
-  dispositivo=""; 
+  int strlen=stringToSplit.length();
+  Serial1.println(stringToSplit);
+  int i; //counter
+  deviceAddr=""; 
   for(i=0; i<strlen ; i++)
   {
-    if(striga_da_dividere.charAt(i)=='-')
+    if(stringToSplit.charAt(i)=='-')
       numberkey++;
-
   }
-  Serial1.println(numberkey);
-  //-----------dispositivo----------------  
+  //Serial1.println(numberkey);
+  //-----------deviceAddr----------------  
   
-  for(i=0; striga_da_dividere.charAt(i)!=':' && i<strlen ;i++)
+  for(i=0; stringToSplit.charAt(i)!=':' && i<strlen ;i++)
   {
-    dispositivo += String(striga_da_dividere.charAt(i));
+    deviceAddr += String(stringToSplit.charAt(i));
   }
 
   for(j; j<numberkey ;j++)
   {
-    //-----------proprietà----------------
+    //-----------property----------------
 
-    for(i++; striga_da_dividere.charAt(i)!=':' && i<strlen ;i++)
+    for(i++; stringToSplit.charAt(i)!=':' && i<strlen ;i++)
     {
-      proprietaArray[j] += String(striga_da_dividere.charAt(i));
+      propertyArray[j] += String(stringToSplit.charAt(i));
     }
 
     
-    //-----------valore----------------  
+    //-----------value----------------  
     
-    for(i++; striga_da_dividere.charAt(i)!='-' && i<strlen ;i++)
+    for(i++; stringToSplit.charAt(i)!='-' && i<strlen ;i++)
     {
-      valoreArray[j] += String(striga_da_dividere.charAt(i)); 
+      valueArray[j] += String(stringToSplit.charAt(i)); 
     }
     
   }
 }
 
+
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-//callback per la gestione della conferma (accede al campo message->opzioni) e verifica dell'ack
-//deve avere questo prototipo (vedi documentazione LWM)!!!!! 
+
+//callback for the management of the confirmation (access the field message->opzioni) and verification of ack 
 static void appDataConf(NWK_DataReq_t *req)
 {
-  if (NWK_SUCCESS_STATUS == req->status)
-  // frame was sent successfully
-  ack=true;
-  else
-  // some error happened
-  ack=false;
+  Serial1.print("ACK: "); //debug
+  switch(req->status)
+  {
+    case NWK_SUCCESS_STATUS:
+      Serial1.print(1,DEC);
+      break;
+    case NWK_ERROR_STATUS:
+      Serial1.print(2,DEC);
+      break;
+    case NWK_OUT_OF_MEMORY_STATUS:
+      Serial1.print(3,DEC);
+      break;
+    case NWK_NO_ACK_STATUS:
+      Serial1.print(4,DEC);
+      break;
+    case NWK_NO_ROUTE_STATUS:
+      Serial1.print(5,DEC);
+      break;
+    case NWK_PHY_CHANNEL_ACCESS_FAILURE_STATUS:
+      Serial1.print(6,DEC);
+      break;
+    case NWK_PHY_NO_ACK_STATUS:
+      Serial1.print(7,DEC);
+      break;
+//    default:
+//      Serial1.print("nessuna corrispondenza nell ack");
+//      break;
+     
+
+  }
+  nwkDataReqBusy = false;
+
+  Serial1.println("");
+  
 }
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -97,8 +123,8 @@ void select()
     x=0;
     for(int k=0; k<numberkey; k++)
     {
-      proprietaArray[k]="";
-      valoreArray[k]="";
+      propertyArray[k]="";
+      valueArray[k]="";
     }
     numberkey=0;
     j=0;
@@ -107,66 +133,87 @@ void select()
   }
   if(numberkey!=0)
   {
-    proprieta=proprietaArray[x];
-    valore=valoreArray[x];
+    property=propertyArray[x];
+    value=valueArray[x];
     x++;
     flag=1;
-    Serial1.println(proprieta+":"+valore);
+    Serial1.println(property+":"+value);
   }
 
 }
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-//per ricevere un pacchetto com lwm
+//to receive a packet with LWM
 static bool apioReceive(NWK_DataInd_t *ind) 
 { 
   int message_size=ind->size;
   int i;
-  char Buffer[100];
+  char Buffer[110];
   String receivedL="";
   for(i=0; i<message_size; i++)
   {
     Buffer[i] = ind->data[i];
+    //delay(10);
+    Serial1.write(ind->data[i]);
+   
   }
-  Serial1.println(String(Buffer));
-  divide_string(String(Buffer)); //utilizza le variabili dispositivo1 proprieta1 valore1
+
+  divide_string(String(Buffer)); 
+  
   for(int i=0; i<100; i++)
   {
     Buffer[i]=NULL;
+    
   }
-  return true; //la documentazione dice che è cosi
+//  Serial1.print("Received message - ");
+//  Serial1.print("lqi: ");
+//  Serial1.print(ind->lqi, DEC);
+//
+//  Serial1.print("  ");
+//
+//  Serial1.print("rssi: ");
+//  Serial1.print(ind->rssi, DEC);
+//  Serial1.println("  ");
+  //NWK_SetAckControl(NWK_IND_OPT_ACK_REQUESTED);
+
+  return true; 
 }
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-//la usano gli oggetti per comunicare col coordinatore
-void apioSend(String daInviare)
+//is used by objects to communicate with the coordinator
+void apioSend(String toSend)
 
 {
-  char daInviare_char[100]; //serve perche l attributo data di message che non funziona con con un puntatore a String
-  daInviare.toCharArray(daInviare_char, 100);
-  int16_t indirizzo = INDIRIZZO_COORDINATORE; //1 è l'indirizzo del coordinatore
-  
+  int len = toSend.length(); //if i use toSend.toCharArray() the packet does not arrive well
+  for(int g=0; g<len ;g++) 
+  {
+      sendThis[g]=toSend.charAt(g);
+  }
+  int16_t address = COORDINATOR_ADDRESS_LWM; 
+
+  nwkDataReqBusy = true;
   
   NWK_DataReq_t *message = (NWK_DataReq_t*)malloc(sizeof(NWK_DataReq_t));
-  message->dstAddr = indirizzo; //indirizzo dell'oggetto
+  message->dstAddr = address; //object address
   message->dstEndpoint = 1; 
   message->srcEndpoint = 1;
-  message->options = NWK_OPT_ACK_REQUEST; //richiedo un ack
-  message->data = (uint8_t*)(daInviare_char);
-  message->size = strlen(daInviare_char);
-  message->confirm = appDataConf; //callback per la gestione della conferma (campo opzioni)
-                                  //e verifica dell'ack richiesto qui sopra
-  NWK_DataReq(message); //invio messaggio
+  message->options = NWK_OPT_ACK_REQUEST; //I require an ack
+  message->size = len;
+  message->data = (uint8_t*)(sendThis);
+
+  message->confirm = appDataConf; //callback for the management of the confirmation (option field)
+                                  //and verification of ack required above 
+  NWK_DataReq(message); //send message
 }
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 void apioSetup()
 {
   delay(1000);
   SYS_Init();
-  NWK_SetAddr(INDIRIZZO_OGGETTO);
-  NWK_SetPanId(0x01);
-  PHY_SetChannel(0x1a);
+  NWK_SetAddr(OBJECT_ADDRESS);
+  NWK_SetPanId(0x02);
+  PHY_SetChannel(0xf);
   PHY_SetRxState(true);
   NWK_OpenEndpoint(1, apioReceive);
 
 }
-#endif
 
