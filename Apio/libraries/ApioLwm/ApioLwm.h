@@ -2,7 +2,6 @@
 
 #define COORDINATOR_ADDRESS_LWM  0
 #define ARRAY_LENGTH 10
-#define OBJECT_ADDRESS  34
 
 /*---------------------variables definition-----------------------------*/
 
@@ -205,11 +204,11 @@ void apioSend(String toSend)
   NWK_DataReq(message); //send message
 }
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-void apioSetup()
+void apioSetup(uint16_t objectAddress)
 {
   delay(1000);
   SYS_Init();
-  NWK_SetAddr(OBJECT_ADDRESS);
+  NWK_SetAddr(objectAddress);
   NWK_SetPanId(0x02);
   PHY_SetChannel(0xf);
   PHY_SetRxState(true);

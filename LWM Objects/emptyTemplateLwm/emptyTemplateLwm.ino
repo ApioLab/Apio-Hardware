@@ -33,12 +33,12 @@ extern "C"{
 
 #include <ApioLwm.h>
 
-
+uint16_t object_address=34;
 void setup() {
   Serial1.begin(9600); // debug
   Serial1.println("setup oggetto");
 
-  apioSetup();
+  apioSetup(object_address);
   
 
 }
