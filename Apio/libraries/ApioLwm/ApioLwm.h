@@ -114,8 +114,9 @@ static void appDataConf(NWK_DataReq_t *req)
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //This function choose property and value from propertyArray valueArray. This must be declared on every loop(Can be
 //placed in input?)
-void select()
+void apioLoop()
 {
+  SYS_TaskHandler();
 
   if(x==numberkey && flag==1)
   {
