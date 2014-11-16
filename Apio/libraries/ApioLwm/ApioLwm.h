@@ -6,8 +6,8 @@
 /*---------------------variables definition-----------------------------*/
 
 String deviceAddr;
-String property; // variables that are to be processed in the current loop
-String value;  // variables that are to be processed in the current loop
+String property; // variables that are to be processed in the running loop
+String value;  // variables that are to be processed in the running loop
 String propertyArray[ARRAY_LENGTH];
 String valueArray[ARRAY_LENGTH];
 int numberkey=0;
@@ -21,7 +21,7 @@ bool TX_has_gone;
 bool RX_has_arrived;
 
 int flag; //flag which manages the logic of the select
-int x=0;//is used to keep track the current property value in the loop
+int x=0;//is used to keep track the running property:value in the loop
 
 
 
@@ -33,7 +33,7 @@ int x=0;//is used to keep track the current property value in the loop
 void divide_string(String stringToSplit) {
   
   int strlen=stringToSplit.length();
-  Serial1.println(stringToSplit);
+  //Serial1.println(stringToSplit); //debug
   int i; //counter
   deviceAddr=""; 
   for(i=0; i<strlen ; i++)
@@ -75,29 +75,29 @@ void divide_string(String stringToSplit) {
 //callback for the management of the confirmation (access the field message->opzioni) and verification of ack 
 static void appDataConf(NWK_DataReq_t *req)
 {
-  Serial1.print("ACK: "); //debug
+  //Serial1.print("ACK: "); //debug
   switch(req->status)
   {
     case NWK_SUCCESS_STATUS:
-      Serial1.print(1,DEC);
+      //Serial1.print(1,DEC);
       break;
     case NWK_ERROR_STATUS:
-      Serial1.print(2,DEC);
+      //Serial1.print(2,DEC);
       break;
     case NWK_OUT_OF_MEMORY_STATUS:
-      Serial1.print(3,DEC);
+      //Serial1.print(3,DEC);
       break;
     case NWK_NO_ACK_STATUS:
-      Serial1.print(4,DEC);
+      //Serial1.print(4,DEC);
       break;
     case NWK_NO_ROUTE_STATUS:
-      Serial1.print(5,DEC);
+      //Serial1.print(5,DEC);
       break;
     case NWK_PHY_CHANNEL_ACCESS_FAILURE_STATUS:
-      Serial1.print(6,DEC);
+      //Serial1.print(6,DEC);
       break;
     case NWK_PHY_NO_ACK_STATUS:
-      Serial1.print(7,DEC);
+      //Serial1.print(7,DEC);
       break;
 //    default:
 //      Serial1.print("nessuna corrispondenza nell ack");
@@ -136,7 +136,7 @@ void select()
     value=valueArray[x];
     x++;
     flag=1;
-    Serial1.println(property+":"+value);
+    //Serial1.println(property+":"+value);
   }
 }
 
@@ -160,7 +160,7 @@ static bool apioReceive(NWK_DataInd_t *ind)
   {
     Buffer[i] = ind->data[i];
     //delay(10);
-    Serial1.write(ind->data[i]);
+    //Serial1.write(ind->data[i]);
    
   }
 
@@ -214,7 +214,6 @@ void apioSend(String toSend)
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 void apioSetup(uint16_t objectAddress)
 {
-  delay(1000);
   SYS_Init();
   NWK_SetAddr(objectAddress);
   NWK_SetPanId(0x02);

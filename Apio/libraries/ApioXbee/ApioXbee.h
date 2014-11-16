@@ -1,4 +1,4 @@
-mwe +FDS/*
+/*
 library containing variables in general and useful functions
 */
 
@@ -9,8 +9,8 @@ library containing variables in general and useful functions
 /*---------------------variables definition-----------------------------*/
 
 String deviceAddr;
-String property; // variabili che sono da processare nel loop in corso
-String value;  // variabili che sono da processare nel loop in corso
+String property; //  variable that is to be processed in the running loop
+String value;  //  variable that is to be processed in the running loop
 //String content; //contiene tutta la stringa: deviceAddr+property1+value1+...+propertyn+valuen
 String propertyArray[ARRAY_LENGTH];
 String valueArray[ARRAY_LENGTH];
@@ -24,7 +24,7 @@ bool TX_has_gone;
 bool RX_has_arrived;
 
 int flag=1; //flag which manages the logic of the select
-int x=0;//is used to keep track the current property value in the loop
+int x=0;//is used to keep track the running property:value in the loop
 
 XBee xbee = XBee();
 ZBRxResponse zbRx = ZBRxResponse(); //for the packet in reception
@@ -60,7 +60,7 @@ void select()
     value=valueArray[x];
     x++;
     flag=1;
-    Serial.println(property+":"+value);
+    //Serial.println(property+":"+value);
    
   }
 
@@ -118,20 +118,19 @@ void apioRecive()
   xbee.readPacket();
 
   // 2. Now, to check if a packet was received: 
-  if (xbee.getResponse().isAvailable()) //se è vero ho ricevuto qualcosa
+  if (xbee.getResponse().isAvailable()) //if it's true i have received something
   {
-    if (xbee.getResponse().getApiId() == ZB_RX_RESPONSE) //se è vero ho ricevuto un pacchetto zb rx
+    if (xbee.getResponse().getApiId() == ZB_RX_RESPONSE) //if it's true i have received a packet zb rx
     {
-       xbee.getResponse().getZBRxResponse(zbRx); //riempio la classe zb rx
-       /*flashLed(led, zbRx.getDataLength(), 500);*/
+       xbee.getResponse().getZBRxResponse(zbRx); //fill the zb rx class
        for (int i = 0; i < zbRx.getDataLength(); i++) 
        {
 
            Buffer[i]=zbRx.getData()[i];
        }
-       Serial.println(String(Buffer));
+       //Serial.println(String(Buffer)); //debug
        divide_string(String(Buffer));
-       //content="";
+       
        for (int i = 0; i < MAX_PAYLOAD_XBEE; i++) 
        {
 
@@ -163,14 +162,12 @@ void apioSend(String toSend)
   xbee.send(zbTx);
 }
 
-//inizialization
+//INIZIALIZATION
 void apioSetup()
 {
+    
   Serial.begin(9600);
-  Serial.println("setup object");
-  
-  Serial1.begin(9600);
-  xbee.setSerial(Serial1);
+  xbee.setSerial(serial);
 }
 
 
