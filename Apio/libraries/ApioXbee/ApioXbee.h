@@ -1,4 +1,4 @@
-/*
+mwe +FDS/*
 library containing variables in general and useful functions
 */
 
@@ -112,7 +112,7 @@ void divide_string(String stringToSplit) {
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //This function receive from comunication channel(in this case XBee) launch divide string for populate propertyArry
 //valueArray
-void apioLoop()
+void apioRecive()
 {
   // 1. This will read any data that is available:
   xbee.readPacket();
@@ -140,11 +140,16 @@ void apioLoop()
     }
   }
 
-  select();
+ 
 }
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
+void apioLoop()
+{
+    apioRecive();
+    select();
+}
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 //SEND
 /*------------------------------------------------------------------------*/

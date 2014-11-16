@@ -14,16 +14,24 @@ HOW APIO ENCODING WORKS
 
 ```sh
 void loop(){
-  if(property=="onoff"){
-    if(value=="1") {
-      onoff(LED, 1);
-    }
-    if(value=="0"){
-      onoff(LED, 0);
-    }
-  }
+
+	apioLoop();
+
+	if(property=="onoff"){
+		if(value=="1") {
+			onoff(LED, 1);
+		}
+		if(value=="0"){
+			onoff(LED, 0);
+		}
+	}
 }
 ```
+<p> <code>apioLoop ()</code> allows you to receive messages and select the current pair property:value to be processed in the current main loop. This is because the sketch have the ability to queue multiple commands from the server, but you have to worry only to check the value of variables called 'property' and 'value' because on each loop, the function apioLoop() stores in these varibiabiles an element of the queue (of course only if multiple commands are sent or the main loop has not had time to execute the previous one, before the arrival of subsequent commands)</p>
+
+<p> To send messages to the server you can use  <code>void apioSend(String toSend)</code> . .....<code>apioSend()</code> </p>
+
+
 
 <p>And that's all.</p>
 <p>Now you have all the knowledge to codify all of your project with APIO.</p>

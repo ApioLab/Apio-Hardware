@@ -114,9 +114,8 @@ static void appDataConf(NWK_DataReq_t *req)
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //This function choose property and value from propertyArray valueArray. This must be declared on every loop(Can be
 //placed in input?)
-void apioLoop()
+void select()
 {
-  SYS_TaskHandler();
 
   if(x==numberkey && flag==1)
   {
@@ -139,8 +138,16 @@ void apioLoop()
     flag=1;
     Serial1.println(property+":"+value);
   }
-
 }
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+void apioLoop()
+{
+    SYS_TaskHandler();
+    select();
+}
+
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //to receive a packet with LWM
 static bool apioReceive(NWK_DataInd_t *ind) 
