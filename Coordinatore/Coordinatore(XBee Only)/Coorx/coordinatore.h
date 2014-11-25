@@ -321,6 +321,7 @@ bool XBeeInput()
 void ApioCoordinatorSetup()
 { 
   //setup Xbee
-  Serial.begin(9600);//per la comunicazione con l xbee
-  xbee.setSerial(Serial);
+  Serial.begin(115200);
+  Serial1.begin(9600);//per la comunicazione con l xbee
+  xbee.setSerial(Serial1);
 }

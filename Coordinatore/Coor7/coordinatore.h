@@ -462,7 +462,7 @@ bool XBeeInput()
 
 void ApioCoordinatorSetup()
 {
-  Serial1.begin(9600); //for comucicate with the web-server
+  Serial1.begin(115200); //for comucicate with the web-server
   
   //setup Xbee
   Serial.begin(9600);//for comunicate with  xbee
