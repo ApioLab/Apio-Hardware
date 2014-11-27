@@ -36,19 +36,26 @@ extern "C"{
 
 #include "coordinatore.h"
 
-
+int resetButton=6;
 
 void setup() {
   wdt_disable();
  /*--------------------------------------------------------------------*/ 
  ApioCoordinatorSetup(); //inizializzazione coordinatore
-  
+ pinMode(resetButton, INPUT); 
  /*--------------------------------------------------------------------*/  
   wdt_enable(WDTO_8S);
 }
 
 // the loop routine runs over and over again forever:
 void loop() {
+  
+  if(digitalRead(resetButton)==LOW)
+  {
+    wdt_disable();
+    wdt_enable(WDTO_15MS);
+    while(1){} 
+  }
   SYS_TaskHandler(); //task management LWM
   if(Serial1.available()>0)
   {
@@ -63,9 +70,14 @@ void loop() {
         
           case('l'):
             //Serial1.println("case l"); //debug
-            LwmOutput();
-            
+            LwmOutput();           
           break;
+          case('_'):
+            wdt_disable();
+            wdt_enable(WDTO_15MS);
+            while(1){} 
+          break;
+          
         }
         
     content="";

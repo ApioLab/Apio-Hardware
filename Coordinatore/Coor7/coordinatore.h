@@ -465,7 +465,7 @@ void ApioCoordinatorSetup()
   Serial1.begin(9600); //for comucicate with the web-server
   
   //setup Xbee
-  Serial.begin(9600);//for comunicate with  xbee
+  Serial.begin(115200);//for comunicate with  xbee
   xbee.setSerial(Serial);
 
   //setup Lwm
