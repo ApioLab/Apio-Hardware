@@ -28,28 +28,12 @@
 uint16_t object_address=34;
 
 void setup() {
-<<<<<<< HEAD
-  Serial.begin(115200); // debug
-  Serial.println("setup oggetto");
-
-  apioSetup();
-  
-
-}
-
-void loop() {
-  Serial.flush();
-  SYS_TaskHandler();
-  select();
-=======
 //  Serial1.begin(9600); // debug
 //  Serial1.println("object setup ");
   apioSetup(object_address);
 }
 
-void loop() {
-  
+void loop() { 
   apioLoop();
->>>>>>> FETCH_HEAD
 }
 
