@@ -14,7 +14,7 @@ void setup()
 
 void loop()  
 {
-  apioReceive();
+  apioLoop();
   
   ///Azioni che devono generare un output.
   
@@ -22,6 +22,5 @@ void loop()
   //Azioni che provengono dagli Input
   
   
-  select();
 
 }
