@@ -165,7 +165,7 @@ void apioSetup()
 {
     
   Serial.begin(9600);
-  xbee.setSerial(serial);
+  xbee.setSerial(Serial);
 }
 
 
