@@ -112,7 +112,7 @@ void divide_string(String stringToSplit) {
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //This function receive from comunication channel(in this case XBee) launch divide string for populate propertyArry
 //valueArray
-void apioRecive()
+void apioReceive()
 {
   // 1. This will read any data that is available:
   xbee.readPacket();
@@ -138,18 +138,12 @@ void apioRecive()
        }
     }
   }
-<<<<<<< HEAD
-  select();
-=======
-
- 
->>>>>>> FETCH_HEAD
 }
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 void apioLoop()
 {
-    apioRecive();
+    apioReceive();
     select();
 }
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
