@@ -71,7 +71,7 @@ MCU_DFU = atmega16u2
 
 # Specify the Arduino model using the assigned PID.  This is used by Descriptors.c
 #   to set PID and product descriptor string
-# Pinoccio PID:
+# APIO PID:
 ARDUINO_MODEL_PID = 0x6052
 # Mega 2560 PID:
 #ARDUINO_MODEL_PID = 0x0010

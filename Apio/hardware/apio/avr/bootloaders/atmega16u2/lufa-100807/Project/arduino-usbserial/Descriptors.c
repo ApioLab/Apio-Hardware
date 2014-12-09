@@ -66,7 +66,7 @@ const USB_Descriptor_Device_t PROGMEM DeviceDescriptor =
 	.Endpoint0Size          = FIXED_CONTROL_ENDPOINT_SIZE,
 		
 	.VendorID               = 0x03EB, // Apio
-	.ProductID          	  = 0x6052, // Apio USB-to-serial programmer
+	.ProductID          	  = 0x6052, // (CHANGE ALSO IN descriptor.h: APIO_PID) Apio USB-to-serial programmer
 	.ReleaseNumber          = 0x0001,
 		
 	.ManufacturerStrIndex   = 0x01,
@@ -202,7 +202,7 @@ const USB_Descriptor_String_t PROGMEM LanguageString =
  */
 const USB_Descriptor_String_t PROGMEM ManufacturerString =
 {
-  #if (ARDUINO_MODEL_PID == PINOCCIO_PID)
+  #if (ARDUINO_MODEL_PID == APIO_PID)
 		.Header                 = {.Size = USB_STRING_LEN(27), .Type = DTYPE_String},
 
   	.UnicodeString          = L"Apio (http://apio.cc)"
@@ -227,7 +227,7 @@ const USB_Descriptor_String_t PROGMEM ProductString =
 		.Header                 = {.Size = USB_STRING_LEN(17), .Type = DTYPE_String},
 			
 		.UnicodeString          = L"Arduino Mega 2560"
-	#elif (ARDUINO_MODEL_PID == PINOCCIO_PID)
+	#elif (ARDUINO_MODEL_PID == APIO_PID)
 		.Header                 = {.Size = USB_STRING_LEN(8), .Type = DTYPE_String},
 
 		.UnicodeString          = L"Apio Dongle"
