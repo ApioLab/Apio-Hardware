@@ -1,7 +1,7 @@
 menu.cpu=Processor
 
 ##############################################################
-apio.name=Apio Dongle
+apio.name=Apio  Dongle
 apio.cpu=atmega256rfr2
 
 apio.upload.tool=arduino:avrdude
