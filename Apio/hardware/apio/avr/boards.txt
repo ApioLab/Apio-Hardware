@@ -1,24 +1,37 @@
-# See: http://code.google.com/p/arduino/wiki/Platforms
-
 menu.cpu=Processor
 
-apiodongle.name= Apio Dongle
-apiodongle.upload.protocol=wiring
-apiodongle.upload.maximum_size=258048
-apiodongle.upload.speed=38400
-apiodongle.bootloader.low_fuses=0xe2
-apiodongle.bootloader.high_fuses=0x9a
-apiodongle.bootloader.extended_fuses=0xff
-apiodongle.bootloader.path=stk500v2
-apiodongle.bootloader.file=stk500boot_v2_mega256rfr2.hex
-apiodongle.bootloader.unlock_bits=0x3F
-apiodongle.bootloader.lock_bits=0x0F
-apiodongle.build.mcu=atmega256rfr2
-apiodongle.build.f_cpu=8000000L
-apiodongle.build.core=arduino:arduino
-apiodongle.build.variant=ApioDongle
-apiodongle.bootloader.tool=avrdude
-apiodongle.upload.tool=avrdude
-apiodongle.compiler.c.flags=-c -g -Os -w -ffunction-sections -fdata-sections -MMD --std=c99
+##############################################################
+apio.name=Apio Dongle
+apio.cpu=atmega256rfr2
+
+apio.upload.tool=arduino:avrdude
+apio.upload.protocol=wiring
+
+apio.bootloader.tool=arduino:avrdude
+
+apio.build.f_cpu=16000000L
+apio.build.core=arduino:arduino
+apio.build.variant=ApioDongle
+apio.build.board=apio
+# Workaround for https://github.com/arduino/Arduino/pull/1695
+apio.build.extra_flags=-D__PROG_TYPES_COMPAT__
+
+apio.menu.cpu.atmega256rfr2=ATmega256RFR2
+apio.menu.cpu.atmega256rfr2.build.mcu=atmega256rfr2
+apio.menu.cpu.atmega256rfr2.upload.maximum_size=253952
+apio.menu.cpu.atmega256rfr2.upload.speed=115200
+
+apio.menu.cpu.atmega256rfr2.bootloader.low_fuses=0xDE
+
+apio.menu.cpu.atmega256rfr2.bootloader.high_fuses=0xD0
+
+apio.menu.cpu.atmega256rfr2.bootloader.extended_fuses=0xFE
+
+apio.menu.cpu.atmega256rfr2.bootloader.unlock_bits=0x3F
+
+apio.menu.cpu.atmega256rfr2.bootloader.lock_bits=0x2F
+
+apio.menu.cpu.atmega256rfr2.bootloader.file=STK500RFR2/release0.1/boot_apio.hex
+
 
 ##########################################################################################
