@@ -1,0 +1,24 @@
+# See: http://code.google.com/p/arduino/wiki/Platforms
+
+menu.cpu=Processor
+
+apiodongle.name= Apio Dongle
+apiodongle.upload.protocol=wiring
+apiodongle.upload.maximum_size=258048
+apiodongle.upload.speed=38400
+apiodongle.bootloader.low_fuses=0xe2
+apiodongle.bootloader.high_fuses=0x9a
+apiodongle.bootloader.extended_fuses=0xff
+apiodongle.bootloader.path=stk500v2
+apiodongle.bootloader.file=stk500boot_v2_mega256rfr2.hex
+apiodongle.bootloader.unlock_bits=0x3F
+apiodongle.bootloader.lock_bits=0x0F
+apiodongle.build.mcu=atmega256rfr2
+apiodongle.build.f_cpu=8000000L
+apiodongle.build.core=arduino:arduino
+apiodongle.build.variant=ApioDongle
+apiodongle.bootloader.tool=avrdude
+apiodongle.upload.tool=avrdude
+apiodongle.compiler.c.flags=-c -g -Os -w -ffunction-sections -fdata-sections -MMD --std=c99
+
+##########################################################################################
