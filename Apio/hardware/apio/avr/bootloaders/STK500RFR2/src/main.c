@@ -153,7 +153,7 @@ volatile unsigned char redLedVal;
 volatile unsigned char greenLedVal;
 volatile unsigned char blueLedVal;
 volatile unsigned char ledToggle = 0;
-
+// define on this apio board_ :-)
 #ifdef _MEGA_BOARD_
   #define PROGLED_PORT  PORTB
   #define PROGLED_DDR    DDRB
