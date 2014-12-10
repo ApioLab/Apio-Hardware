@@ -207,9 +207,9 @@ const USB_Descriptor_String_t PROGMEM ManufacturerString =
 
   	.UnicodeString          = L"Apio(http://www.apio.cc)"
 	#else
-		.Header                 = {.Size = USB_STRING_LEN(24), .Type = DTYPE_String},
+		.Header                 = {.Size = USB_STRING_LEN(11), .Type = DTYPE_String},
 
-  	.UnicodeString          = L"Apio s.r.l. (www.apio.cc)"
+  	.UnicodeString          = L"Apio Dongle"
 	#endif
 };
 
