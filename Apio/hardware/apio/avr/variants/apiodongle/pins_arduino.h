@@ -33,9 +33,6 @@
 #define digitalPinHasPWM(p)         ((p) == 2 || (p) == 3 || (p) == 4 || (p) == 5 || (p) == 21 || (p) == 22 || (p) == 23)
 
 
-//che num associo: qual è la logica?
-
-
 #define D0              0
 #define D1              1  
 #define D2              2
@@ -58,6 +55,9 @@
 
 #define RX1             18
 #define TX1             19
+
+#define LED1            20
+#define LED2            21
 
 // ~: PWM, *: external interrupt
 // Pin num   Pin functions     Connected to / label on board
@@ -83,6 +83,8 @@
 // D17: PF0  ADC0              A0
 // D18: PD3  INT3/TXD1         TX1
 // D19: PD2  INT2/RXD1         RX1
+// D20: PE4  INT4              LED1
+// D21: PE5  INT5              LED2
 
 
 // These pins are not connected / don't have a pin
@@ -174,6 +176,8 @@ const uint8_t PROGMEM digital_pin_to_port_PGM[] = {
   /* D17: */ PF,
   /* D18: */ PD,
   /* D19: */ PD,
+  /* D20: */ PE,
+  /* D21: */ PE,
 };
 
 const uint8_t PROGMEM digital_pin_to_bit_mask_PGM[] = {
@@ -197,6 +201,8 @@ const uint8_t PROGMEM digital_pin_to_bit_mask_PGM[] = {
   /* D17: */ _BV(PF0),
   /* D18: */ _BV(PD3),
   /* D19: */ _BV(PD2),
+  /* D20: */ _BV(PE4),
+  /* D21: */ _BV(PE5),
 
 };
 
@@ -221,6 +227,8 @@ const uint8_t PROGMEM digital_pin_to_timer_PGM[] = {
   /* D17: */ NOT_ON_TIMER,
   /* D18: */ NOT_ON_TIMER,
   /* D19: */ NOT_ON_TIMER,
+  /* D20: */ NOT_ON_TIMER,
+  /* D21: */ NOT_ON_TIMER,
 };
 
 #endif
