@@ -65,8 +65,8 @@ const USB_Descriptor_Device_t PROGMEM DeviceDescriptor =
 				
 	.Endpoint0Size          = FIXED_CONTROL_ENDPOINT_SIZE,
 		
-	.VendorID               = 0x03EB, // Apio
-	.ProductID          	  = 0x6052, // (CHANGE ALSO IN descriptor.h: APIO_PID) Apio USB-to-serial programmer
+	.VendorID               = 0x16D0, // Apio
+	.ProductID          	  = 0x0A5E, // (CHANGE ALSO IN descriptor.h: APIO_PID) Apio USB-to-serial programmer
 	.ReleaseNumber          = 0x0001,
 		
 	.ManufacturerStrIndex   = 0x01,
@@ -205,11 +205,11 @@ const USB_Descriptor_String_t PROGMEM ManufacturerString =
   #if (ARDUINO_MODEL_PID == APIO_PID)
 		.Header                 = {.Size = USB_STRING_LEN(27), .Type = DTYPE_String},
 
-  	.UnicodeString          = L"Apio (http://apio.cc)"
+  	.UnicodeString          = L"Apio(http://www.apio.cc)"
 	#else
 		.Header                 = {.Size = USB_STRING_LEN(24), .Type = DTYPE_String},
 
-  	.UnicodeString          = L"Apio manufacturer (www.apio.cc)"
+  	.UnicodeString          = L"Apio s.r.l. (www.apio.cc)"
 	#endif
 };
 
