@@ -2,6 +2,7 @@
 //library for lwm
 
 //Library for the Lwm
+//Library for the Lwm
 #include "lwm.h"
 #include "lwm/phy/atmegarfr2.h"
 #include "lwm/hal/hal.h"
@@ -23,17 +24,23 @@
 #include "lwm/sys/sysTimer.h"
 #include "lwm/sys/sysTypes.h"
 
-#include "ApioLwm.h"
+#include <ApioLwm.h>
 
 uint16_t object_address=34;
 
-void setup() {
+void setup()  
+{ 
 //  Serial1.begin(9600); // debug
 //  Serial1.println("object setup ");
   apioSetup(object_address);
+} 
+
+
+void loop()  
+{
+  apioLoop();
+
 }
 
-void loop() { 
-  apioLoop();
-}
+
 
