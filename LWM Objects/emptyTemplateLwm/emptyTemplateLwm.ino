@@ -2,38 +2,45 @@
 //library for lwm
 
 //Library for the Lwm
+//Library for the Lwm
 #include "lwm.h"
-#include "atmegarfr2.h"
-#include "hal.h"
-#include "halTimer.h"
-#include "nwk.h"
-#include "nwkCommand.h"
-#include "nwkDataReq.h"
-#include "nwkFrame.h"
-#include "nwkGroup.h"
-#include "nwkRoute.h"
-#include "nwkRouteDiscovery.h"
-#include "nwkRx.h"
-#include "nwkSecurity.h"
-#include "nwkTx.h"
-#include "phy.h"
-#include "sys.h"
-#include "sysConfig.h"
-#include "sysEncrypt.h"
-#include "sysTimer.h"
-#include "sysTypes.h"
+#include "lwm/phy/atmegarfr2.h"
+#include "lwm/hal/hal.h"
+#include "lwm/hal/halTimer.h"
+#include "lwm/nwk/nwk.h"
+#include "lwm/nwk/nwkCommand.h"
+#include "lwm/nwk/nwkDataReq.h"
+#include "lwm/nwk/nwkFrame.h"
+#include "lwm/nwk/nwkGroup.h"
+#include "lwm/nwk/nwkRoute.h"
+#include "lwm/nwk/nwkRouteDiscovery.h"
+#include "lwm/nwk/nwkRx.h"
+#include "lwm/nwk/nwkSecurity.h"
+#include "lwm/nwk/nwkTx.h"
+#include "lwm/phy/phy.h"
+#include "lwm/sys/sys.h"
+#include "lwm/sys/sysConfig.h"
+#include "lwm/sys/sysEncrypt.h"
+#include "lwm/sys/sysTimer.h"
+#include "lwm/sys/sysTypes.h"
 
-#include "ApioLwm.h"
+#include <ApioLwm.h>
 
 uint16_t object_address=34;
 
-void setup() {
+void setup()  
+{ 
 //  Serial1.begin(9600); // debug
 //  Serial1.println("object setup ");
   apioSetup(object_address);
+} 
+
+
+void loop()  
+{
+  apioLoop();
+
 }
 
-void loop() { 
-  apioLoop();
-}
+
 
