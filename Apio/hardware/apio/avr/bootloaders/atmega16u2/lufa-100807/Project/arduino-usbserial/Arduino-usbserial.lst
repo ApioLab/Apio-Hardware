@@ -214,60 +214,60 @@
   49               	.LVL1:
   50               	.LBB32:
   51               	.LBB33:
-  52               		.file 2 "/usr/lib/avr/include/util/atomic.h"
-   1:/usr/lib/avr/include/util/atomic.h **** /* Copyright (c) 2007 Dean Camera
-   2:/usr/lib/avr/include/util/atomic.h ****    All rights reserved.
-   3:/usr/lib/avr/include/util/atomic.h **** 
-   4:/usr/lib/avr/include/util/atomic.h ****    Redistribution and use in source and binary forms, with or without
-   5:/usr/lib/avr/include/util/atomic.h ****    modification, are permitted provided that the following conditions are met:
-   6:/usr/lib/avr/include/util/atomic.h **** 
-   7:/usr/lib/avr/include/util/atomic.h ****    * Redistributions of source code must retain the above copyright
-   8:/usr/lib/avr/include/util/atomic.h ****      notice, this list of conditions and the following disclaimer.
-   9:/usr/lib/avr/include/util/atomic.h **** 
-  10:/usr/lib/avr/include/util/atomic.h ****    * Redistributions in binary form must reproduce the above copyright
-  11:/usr/lib/avr/include/util/atomic.h ****      notice, this list of conditions and the following disclaimer in
-  12:/usr/lib/avr/include/util/atomic.h ****      the documentation and/or other materials provided with the
-  13:/usr/lib/avr/include/util/atomic.h ****      distribution.
-  14:/usr/lib/avr/include/util/atomic.h **** 
-  15:/usr/lib/avr/include/util/atomic.h ****    * Neither the name of the copyright holders nor the names of
-  16:/usr/lib/avr/include/util/atomic.h ****      contributors may be used to endorse or promote products derived
-  17:/usr/lib/avr/include/util/atomic.h ****      from this software without specific prior written permission.
-  18:/usr/lib/avr/include/util/atomic.h **** 
-  19:/usr/lib/avr/include/util/atomic.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  20:/usr/lib/avr/include/util/atomic.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  21:/usr/lib/avr/include/util/atomic.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-  22:/usr/lib/avr/include/util/atomic.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-  23:/usr/lib/avr/include/util/atomic.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-  24:/usr/lib/avr/include/util/atomic.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-  25:/usr/lib/avr/include/util/atomic.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-  26:/usr/lib/avr/include/util/atomic.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-  27:/usr/lib/avr/include/util/atomic.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-  28:/usr/lib/avr/include/util/atomic.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  29:/usr/lib/avr/include/util/atomic.h ****   POSSIBILITY OF SUCH DAMAGE.
-  30:/usr/lib/avr/include/util/atomic.h **** */
-  31:/usr/lib/avr/include/util/atomic.h **** 
-  32:/usr/lib/avr/include/util/atomic.h **** /* $Id: atomic.h 2158 2010-06-10 15:48:28Z joerg_wunsch $ */
-  33:/usr/lib/avr/include/util/atomic.h **** 
-  34:/usr/lib/avr/include/util/atomic.h **** #ifndef _UTIL_ATOMIC_H_
-  35:/usr/lib/avr/include/util/atomic.h **** #define _UTIL_ATOMIC_H_ 1
-  36:/usr/lib/avr/include/util/atomic.h **** 
-  37:/usr/lib/avr/include/util/atomic.h **** #include <avr/io.h>
-  38:/usr/lib/avr/include/util/atomic.h **** #include <avr/interrupt.h>
-  39:/usr/lib/avr/include/util/atomic.h **** 
-  40:/usr/lib/avr/include/util/atomic.h **** #if !defined(__DOXYGEN__)
-  41:/usr/lib/avr/include/util/atomic.h **** /* Internal helper functions. */
-  42:/usr/lib/avr/include/util/atomic.h **** static __inline__ uint8_t __iSeiRetVal(void)
-  43:/usr/lib/avr/include/util/atomic.h **** {
-  44:/usr/lib/avr/include/util/atomic.h ****     sei();
-  45:/usr/lib/avr/include/util/atomic.h ****     return 1;
-  46:/usr/lib/avr/include/util/atomic.h **** }
-  47:/usr/lib/avr/include/util/atomic.h **** 
-  48:/usr/lib/avr/include/util/atomic.h **** static __inline__ uint8_t __iCliRetVal(void)
-  49:/usr/lib/avr/include/util/atomic.h **** {
-  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+  52               		.file 2 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h"
+   1:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** /* Copyright (c) 2007 Dean Camera
+   2:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****    All rights reserved.
+   3:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+   4:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****    Redistribution and use in source and binary forms, with or without
+   5:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****    modification, are permitted provided that the following conditions are met:
+   6:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+   7:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****    * Redistributions of source code must retain the above copyright
+   8:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****      notice, this list of conditions and the following disclaimer.
+   9:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  10:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****    * Redistributions in binary form must reproduce the above copyright
+  11:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****      notice, this list of conditions and the following disclaimer in
+  12:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****      the documentation and/or other materials provided with the
+  13:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****      distribution.
+  14:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  15:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****    * Neither the name of the copyright holders nor the names of
+  16:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****      contributors may be used to endorse or promote products derived
+  17:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****      from this software without specific prior written permission.
+  18:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  19:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  20:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  21:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  22:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  23:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  24:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  25:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  26:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  27:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  28:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  29:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****   POSSIBILITY OF SUCH DAMAGE.
+  30:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** */
+  31:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  32:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** /* $Id$ */
+  33:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  34:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** #ifndef _UTIL_ATOMIC_H_
+  35:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** #define _UTIL_ATOMIC_H_ 1
+  36:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  37:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** #include <avr/io.h>
+  38:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** #include <avr/interrupt.h>
+  39:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  40:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** #if !defined(__DOXYGEN__)
+  41:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** /* Internal helper functions. */
+  42:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** static __inline__ uint8_t __iSeiRetVal(void)
+  43:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** {
+  44:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     sei();
+  45:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     return 1;
+  46:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** }
+  47:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  48:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** static __inline__ uint8_t __iCliRetVal(void)
+  49:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** {
+  50:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     cli();
   53               		.loc 2 50 0
   54               	/* #APP */
-  55               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+  55               	 ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
   56 002a F894      		cli
   57               	 ;  0 "" 2
   58               	.LVL2:
@@ -287,29 +287,29 @@
   70               	.LVL4:
   71               	.LBB34:
   72               	.LBB35:
-  51:/usr/lib/avr/include/util/atomic.h ****     return 1;
-  52:/usr/lib/avr/include/util/atomic.h **** }
-  53:/usr/lib/avr/include/util/atomic.h **** 
-  54:/usr/lib/avr/include/util/atomic.h **** static __inline__ void __iSeiParam(const uint8_t *__s)
-  55:/usr/lib/avr/include/util/atomic.h **** {
-  56:/usr/lib/avr/include/util/atomic.h ****     sei();
-  57:/usr/lib/avr/include/util/atomic.h ****     __asm__ volatile ("" ::: "memory");
-  58:/usr/lib/avr/include/util/atomic.h ****     (void)__s;
-  59:/usr/lib/avr/include/util/atomic.h **** }
-  60:/usr/lib/avr/include/util/atomic.h **** 
-  61:/usr/lib/avr/include/util/atomic.h **** static __inline__ void __iCliParam(const uint8_t *__s)
-  62:/usr/lib/avr/include/util/atomic.h **** {
-  63:/usr/lib/avr/include/util/atomic.h ****     cli();
-  64:/usr/lib/avr/include/util/atomic.h ****     __asm__ volatile ("" ::: "memory");
-  65:/usr/lib/avr/include/util/atomic.h ****     (void)__s;
-  66:/usr/lib/avr/include/util/atomic.h **** }
-  67:/usr/lib/avr/include/util/atomic.h **** 
-  68:/usr/lib/avr/include/util/atomic.h **** static __inline__ void __iRestore(const  uint8_t *__s)
-  69:/usr/lib/avr/include/util/atomic.h **** {
-  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+  51:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     return 1;
+  52:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** }
+  53:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  54:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** static __inline__ void __iSeiParam(const uint8_t *__s)
+  55:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** {
+  56:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     sei();
+  57:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     __asm__ volatile ("" ::: "memory");
+  58:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     (void)__s;
+  59:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** }
+  60:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  61:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** static __inline__ void __iCliParam(const uint8_t *__s)
+  62:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** {
+  63:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     cli();
+  64:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     __asm__ volatile ("" ::: "memory");
+  65:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     (void)__s;
+  66:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** }
+  67:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** 
+  68:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** static __inline__ void __iRestore(const  uint8_t *__s)
+  69:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h **** {
+  70:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     SREG = *__s;
   73               		.loc 2 70 0
   74 0038 2FBF      		out __SREG__,r18
-  71:/usr/lib/avr/include/util/atomic.h ****     __asm__ volatile ("" ::: "memory");
+  71:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     __asm__ volatile ("" ::: "memory");
   75               		.loc 2 71 0
   76 003a 0895      		ret
   77               	.LBE35:
@@ -377,10 +377,10 @@
  120               	.LVL7:
  121               	.LBB37:
  122               	.LBB38:
-  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+  50:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     cli();
  123               		.loc 2 50 0
  124               	/* #APP */
- 125               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 125               	 ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
  126 0026 F894      		cli
  127               	 ;  0 "" 2
  128               	.LVL8:
@@ -399,7 +399,7 @@
  139               	.LVL9:
  140               	.LBB39:
  141               	.LBB40:
-  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+  70:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     SREG = *__s;
  142               		.loc 2 70 0
  143 0034 2FBF      		out __SREG__,r18
  144               		.loc 2 71 0
@@ -857,10 +857,10 @@
  255               	.LVL14:
  256               	.LBB102:
  257               	.LBB103:
-  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+  50:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     cli();
  258               		.loc 2 50 0
  259               	/* #APP */
- 260               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 260               	 ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
  261 0006 F894      		cli
  262               	 ;  0 "" 2
  263               	.LVL15:
@@ -880,7 +880,7 @@
  275               	.LVL16:
  276               	.LBB104:
  277               	.LBB105:
-  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+  70:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     SREG = *__s;
  278               		.loc 2 70 0
  279 001c 2FBF      		out __SREG__,r18
  280               		.loc 2 71 0
@@ -897,10 +897,10 @@
  290               	.LVL18:
  291               	.LBB108:
  292               	.LBB109:
-  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+  50:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     cli();
  293               		.loc 2 50 0
  294               	/* #APP */
- 295               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 295               	 ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
  296 0020 F894      		cli
  297               	 ;  0 "" 2
  298               	.LVL19:
@@ -920,7 +920,7 @@
  310               	.LVL20:
  311               	.LBB110:
  312               	.LBB111:
-  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+  70:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     SREG = *__s;
  313               		.loc 2 70 0
  314 0036 2FBF      		out __SREG__,r18
  315               	.LVL21:
@@ -952,10 +952,10 @@
  338               	.LVL23:
  339               	.LBB117:
  340               	.LBB118:
-  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+  50:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     cli();
  341               		.loc 2 50 0
  342               	/* #APP */
- 343               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 343               	 ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
  344 003e F894      		cli
  345               	 ;  0 "" 2
  346               	.LVL24:
@@ -968,7 +968,7 @@
  352               	.LVL25:
  353               	.LBB119:
  354               	.LBB120:
-  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+  70:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     SREG = *__s;
  355               		.loc 2 70 0
  356 0044 9FBF      		out __SREG__,r25
  357               		.loc 2 71 0
@@ -1013,10 +1013,10 @@
  391               	.LVL30:
  392               	.LBB125:
  393               	.LBB126:
-  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+  50:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     cli();
  394               		.loc 2 50 0
  395               	/* #APP */
- 396               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 396               	 ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
  397 0062 F894      		cli
  398               	 ;  0 "" 2
  399               	.LVL31:
@@ -1029,7 +1029,7 @@
  405               	.LVL32:
  406               	.LBB127:
  407               	.LBB128:
-  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+  70:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     SREG = *__s;
  408               		.loc 2 70 0
  409 0068 8FBF      		out __SREG__,r24
  410               		.loc 2 71 0
@@ -1150,10 +1150,10 @@
  503               	.LVL44:
  504               	.LBB139:
  505               	.LBB140:
-  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+  50:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     cli();
  506               		.loc 2 50 0
  507               	/* #APP */
- 508               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 508               	 ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
  509 00ce F894      		cli
  510               	 ;  0 "" 2
  511               	.LVL45:
@@ -1166,7 +1166,7 @@
  517               	.LVL46:
  518               	.LBB141:
  519               	.LBB142:
-  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+  70:/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h ****     SREG = *__s;
  520               		.loc 2 70 0
  521 00d4 9FBF      		out __SREG__,r25
  522               		.loc 2 71 0
@@ -1690,32 +1690,32 @@
  919               		.comm	USBtoUSART_Buffer,133,1
  920               		.text
  921               	.Letext0:
- 922               		.file 6 "/usr/lib/avr/include/stdint.h"
+ 922               		.file 6 "/usr/local/CrossPack-AVR-20131216/avr/include/stdint.h"
  923               		.file 7 "../../LUFA/Drivers/USB/HighLevel/../LowLevel/Device.h"
  924               		.file 8 "../../LUFA/Drivers/USB/Class/Device/../Common/CDC.h"
  925               		.file 9 "../../LUFA/Drivers/USB/Class/Device/CDC.h"
  926               		.file 10 "../../LUFA/Drivers/USB/HighLevel/../LowLevel/USBController.h"
  927               		.file 11 "../../LUFA/Drivers/USB/HighLevel/USBTask.h"
 DEFINED SYMBOLS
-                            *ABS*:0000000000000000 Arduino-usbserial.c
-     /tmp/ccuiH9UY.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccuiH9UY.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccuiH9UY.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccuiH9UY.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccuiH9UY.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccuiH9UY.s:12     .text.RingBuffer_Insert:0000000000000000 RingBuffer_Insert
-     /tmp/ccuiH9UY.s:85     .text.RingBuffer_Remove:0000000000000000 RingBuffer_Remove
-     /tmp/ccuiH9UY.s:158    .text.SetupHardware:0000000000000000 SetupHardware
-     /tmp/ccuiH9UY.s:240    .text.startup.main:0000000000000000 main
-                            *COM*:0000000000000085 USBtoUSART_Buffer
-                            *COM*:0000000000000085 USARTtoUSB_Buffer
-     /tmp/ccuiH9UY.s:905    .data:0000000000000000 VirtualSerial_CDC_Interface
-                            *COM*:0000000000000003 PulseMSRemaining
-     /tmp/ccuiH9UY.s:577    .text.EVENT_USB_Device_ConfigurationChanged:0000000000000000 EVENT_USB_Device_ConfigurationChanged
-     /tmp/ccuiH9UY.s:596    .text.EVENT_USB_Device_UnhandledControlRequest:0000000000000000 EVENT_USB_Device_UnhandledControlRequest
-     /tmp/ccuiH9UY.s:615    .text.EVENT_CDC_Device_LineEncodingChanged:0000000000000000 EVENT_CDC_Device_LineEncodingChanged
-     /tmp/ccuiH9UY.s:770    .text.__vector_23:0000000000000000 __vector_23
-     /tmp/ccuiH9UY.s:875    .text.EVENT_CDC_Device_ControLineStateChanged:0000000000000000 EVENT_CDC_Device_ControLineStateChanged
+                            *ABS*:00000000 Arduino-usbserial.c
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:2      *ABS*:0000003e __SP_H__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:3      *ABS*:0000003d __SP_L__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:4      *ABS*:0000003f __SREG__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:5      *ABS*:00000000 __tmp_reg__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:6      *ABS*:00000001 __zero_reg__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:12     .text.RingBuffer_Insert:00000000 RingBuffer_Insert
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:85     .text.RingBuffer_Remove:00000000 RingBuffer_Remove
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:158    .text.SetupHardware:00000000 SetupHardware
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:240    .text.startup.main:00000000 main
+                            *COM*:00000085 USBtoUSART_Buffer
+                            *COM*:00000085 USARTtoUSB_Buffer
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:905    .data:00000000 VirtualSerial_CDC_Interface
+                            *COM*:00000003 PulseMSRemaining
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:577    .text.EVENT_USB_Device_ConfigurationChanged:00000000 EVENT_USB_Device_ConfigurationChanged
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:596    .text.EVENT_USB_Device_UnhandledControlRequest:00000000 EVENT_USB_Device_UnhandledControlRequest
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:615    .text.EVENT_CDC_Device_LineEncodingChanged:00000000 EVENT_CDC_Device_LineEncodingChanged
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:770    .text.__vector_23:00000000 __vector_23
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//ccB7W1Af.s:875    .text.EVENT_CDC_Device_ControLineStateChanged:00000000 EVENT_CDC_Device_ControLineStateChanged
 
 UNDEFINED SYMBOLS
 USB_Init

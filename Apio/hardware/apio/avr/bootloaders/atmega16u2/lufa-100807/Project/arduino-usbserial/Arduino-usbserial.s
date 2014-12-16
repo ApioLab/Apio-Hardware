@@ -49,10 +49,10 @@ RingBuffer_Insert:
 .LVL1:
 .LBB32:
 .LBB33:
-	.file 2 "/usr/lib/avr/include/util/atomic.h"
+	.file 2 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h"
 	.loc 2 50 0
 /* #APP */
- ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
 	cli
  ;  0 "" 2
 .LVL2:
@@ -122,7 +122,7 @@ RingBuffer_Remove:
 .LBB38:
 	.loc 2 50 0
 /* #APP */
- ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
 	cli
  ;  0 "" 2
 .LVL8:
@@ -257,7 +257,7 @@ main:
 .LBB103:
 	.loc 2 50 0
 /* #APP */
- ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
 	cli
  ;  0 "" 2
 .LVL15:
@@ -292,7 +292,7 @@ main:
 .LBB109:
 	.loc 2 50 0
 /* #APP */
- ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
 	cli
  ;  0 "" 2
 .LVL19:
@@ -340,7 +340,7 @@ main:
 .LBB118:
 	.loc 2 50 0
 /* #APP */
- ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
 	cli
  ;  0 "" 2
 .LVL24:
@@ -393,7 +393,7 @@ main:
 .LBB126:
 	.loc 2 50 0
 /* #APP */
- ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
 	cli
  ;  0 "" 2
 .LVL31:
@@ -505,7 +505,7 @@ main:
 .LBB140:
 	.loc 2 50 0
 /* #APP */
- ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ ;  50 "/usr/local/CrossPack-AVR-20131216/avr/include/util/atomic.h" 1
 	cli
  ;  0 "" 2
 .LVL45:
@@ -919,7 +919,7 @@ VirtualSerial_CDC_Interface:
 	.comm	USBtoUSART_Buffer,133,1
 	.text
 .Letext0:
-	.file 6 "/usr/lib/avr/include/stdint.h"
+	.file 6 "/usr/local/CrossPack-AVR-20131216/avr/include/stdint.h"
 	.file 7 "../../LUFA/Drivers/USB/HighLevel/../LowLevel/Device.h"
 	.file 8 "../../LUFA/Drivers/USB/Class/Device/../Common/CDC.h"
 	.file 9 "../../LUFA/Drivers/USB/Class/Device/CDC.h"
@@ -3816,8 +3816,8 @@ VirtualSerial_CDC_Interface:
 	.string	"__iCliRetVal"
 .LASF82:
 	.string	"__vector_23"
-.LASF10:
-	.string	"long long unsigned int"
+.LASF96:
+	.string	"/Users/alessandrochelli/Downloads/LUFA 100807/Projects/arduino-usbserial"
 .LASF65:
 	.string	"RingBuffer_IsEmpty"
 .LASF12:
@@ -3836,6 +3836,8 @@ VirtualSerial_CDC_Interface:
 	.string	"CDC_Device_ReceiveByte"
 .LASF67:
 	.string	"BaudRate"
+.LASF10:
+	.string	"long long unsigned int"
 .LASF24:
 	.string	"CDC_PARITY_None"
 .LASF66:
@@ -3918,16 +3920,12 @@ VirtualSerial_CDC_Interface:
 	.string	"USB_Init"
 .LASF37:
 	.string	"NotificationEndpointNumber"
-.LASF96:
-	.string	"/home/buckler/LUFA 100807/Projects/arduino-usbserial"
 .LASF15:
 	.string	"DEVICE_STATE_Addressed"
 .LASF13:
 	.string	"DEVICE_STATE_Powered"
 .LASF33:
 	.string	"DataINEndpointDoubleBank"
-.LASF77:
-	.string	"EVENT_USB_Device_ConfigurationChanged"
 .LASF75:
 	.string	"ReceivedByte"
 .LASF81:
@@ -3944,6 +3942,8 @@ VirtualSerial_CDC_Interface:
 	.string	"unsigned char"
 .LASF68:
 	.string	"DoubleSpeed"
+.LASF94:
+	.string	"GNU C 4.8.1 -mmcu=atmega16u2 -gdwarf-2 -Os -std=gnu99 -funsigned-char -funsigned-bitfields -ffunction-sections -fno-inline-small-functions -fpack-struct -fshort-enums -fno-strict-aliasing"
 .LASF38:
 	.string	"NotificationEndpointSize"
 .LASF63:
@@ -3996,8 +3996,8 @@ VirtualSerial_CDC_Interface:
 	.string	"Data"
 .LASF39:
 	.string	"NotificationEndpointDoubleBank"
-.LASF94:
-	.string	"GNU C 4.8.2 -mmcu=atmega16u2 -gdwarf-2 -Os -std=gnu99 -funsigned-char -funsigned-bitfields -ffunction-sections -fno-inline-small-functions -fpack-struct -fshort-enums -fno-strict-aliasing"
+.LASF77:
+	.string	"EVENT_USB_Device_ConfigurationChanged"
 .LASF80:
 	.string	"CDCInterfaceInfo"
 .LASF45:
@@ -4014,6 +4014,6 @@ VirtualSerial_CDC_Interface:
 	.string	"USB_ClassInfo_CDC_Device_t"
 .LASF41:
 	.string	"HostToDevice"
-	.ident	"GCC: (GNU) 4.8.2"
+	.ident	"GCC: (GNU) 4.8.1"
 .global __do_copy_data
 .global __do_clear_bss

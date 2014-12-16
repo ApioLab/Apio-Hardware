@@ -79,8 +79,8 @@
   65:Descriptors.c **** 				
   66:Descriptors.c **** 	.Endpoint0Size          = FIXED_CONTROL_ENDPOINT_SIZE,
   67:Descriptors.c **** 		
-  68:Descriptors.c **** 	.VendorID               = 0x03EB, // Pinoccio
-  69:Descriptors.c **** 	.ProductID          	  = 0x6052, // Pinoccio USB-to-serial programmer
+  68:Descriptors.c **** 	.VendorID               = 0x16D0, // Apio
+  69:Descriptors.c **** 	.ProductID          	  = 0x0A5E, // (CHANGE ALSO IN descriptor.h: APIO_PID) Apio USB-to-serial pro
   70:Descriptors.c **** 	.ReleaseNumber          = 0x0001,
   71:Descriptors.c **** 		
   72:Descriptors.c **** 	.ManufacturerStrIndex   = 0x01,
@@ -216,14 +216,14 @@
  202:Descriptors.c ****  */
  203:Descriptors.c **** const USB_Descriptor_String_t PROGMEM ManufacturerString =
  204:Descriptors.c **** {
- 205:Descriptors.c ****   #if (ARDUINO_MODEL_PID == PINOCCIO_PID)
+ 205:Descriptors.c ****   #if (ARDUINO_MODEL_PID == APIO_PID)
  206:Descriptors.c **** 		.Header                 = {.Size = USB_STRING_LEN(27), .Type = DTYPE_String},
  207:Descriptors.c **** 
- 208:Descriptors.c ****   	.UnicodeString          = L"Apio (http://apio.cc)"
+ 208:Descriptors.c ****   	.UnicodeString          = L"Apio(http://www.apio.cc)"
  209:Descriptors.c **** 	#else
- 210:Descriptors.c **** 		.Header                 = {.Size = USB_STRING_LEN(24), .Type = DTYPE_String},
+ 210:Descriptors.c **** 		.Header                 = {.Size = USB_STRING_LEN(11), .Type = DTYPE_String},
  211:Descriptors.c **** 
- 212:Descriptors.c ****   	.UnicodeString          = L"Apio manufacturer (www.apio.cc)"
+ 212:Descriptors.c ****   	.UnicodeString          = L"Apio Dongle"
  213:Descriptors.c **** 	#endif
  214:Descriptors.c **** };
  215:Descriptors.c **** 
@@ -241,7 +241,7 @@
  227:Descriptors.c **** 		.Header                 = {.Size = USB_STRING_LEN(17), .Type = DTYPE_String},
  228:Descriptors.c **** 			
  229:Descriptors.c **** 		.UnicodeString          = L"Arduino Mega 2560"
- 230:Descriptors.c **** 	#elif (ARDUINO_MODEL_PID == PINOCCIO_PID)
+ 230:Descriptors.c **** 	#elif (ARDUINO_MODEL_PID == APIO_PID)
  231:Descriptors.c **** 		.Header                 = {.Size = USB_STRING_LEN(8), .Type = DTYPE_String},
  232:Descriptors.c **** 
  233:Descriptors.c **** 		.UnicodeString          = L"Apio Dongle"
@@ -416,140 +416,120 @@
  129 0000 0000      		.zero	2
  130               	.global	ManufacturerString
  133               	ManufacturerString:
- 134 0002 32        		.byte	50
+ 134 0002 18        		.byte	24
  135 0003 03        		.byte	3
  136 0004 4100      		.string	"A"
  137 0006 7000      		.string	"p"
  138 0008 6900      		.string	"i"
  139 000a 6F00      		.string	"o"
  140 000c 2000      		.string	" "
- 141 000e 6D00      		.string	"m"
- 142 0010 6100      		.string	"a"
+ 141 000e 4400      		.string	"D"
+ 142 0010 6F00      		.string	"o"
  143 0012 6E00      		.string	"n"
- 144 0014 7500      		.string	"u"
- 145 0016 6600      		.string	"f"
- 146 0018 6100      		.string	"a"
- 147 001a 6300      		.string	"c"
- 148 001c 7400      		.string	"t"
- 149 001e 7500      		.string	"u"
- 150 0020 7200      		.string	"r"
- 151 0022 6500      		.string	"e"
- 152 0024 7200      		.string	"r"
- 153 0026 2000      		.string	" "
- 154 0028 2800      		.string	"("
- 155 002a 7700      		.string	"w"
- 156 002c 7700      		.string	"w"
- 157 002e 7700      		.string	"w"
- 158 0030 2E00      		.string	"."
- 159 0032 6100      		.string	"a"
- 160 0034 7000      		.string	"p"
- 161 0036 6900      		.string	"i"
- 162 0038 6F00      		.string	"o"
- 163 003a 2E00      		.string	"."
- 164 003c 6300      		.string	"c"
- 165 003e 6300      		.string	"c"
- 166 0040 2900      		.string	")"
- 167 0042 00        		.string	""
- 168 0043 00        		.string	""
- 169               	.global	LanguageString
- 172               	LanguageString:
- 173 0044 04        		.byte	4
- 174 0045 03        		.byte	3
- 175 0046 0904      		.word	1033
- 176               	.global	ConfigurationDescriptor
- 179               	ConfigurationDescriptor:
- 180 0048 09        		.byte	9
- 181 0049 02        		.byte	2
- 182 004a 3E00      		.word	62
- 183 004c 02        		.byte	2
- 184 004d 01        		.byte	1
- 185 004e 00        		.byte	0
- 186 004f C0        		.byte	-64
- 187 0050 FA        		.byte	-6
- 188 0051 09        		.byte	9
- 189 0052 04        		.byte	4
- 190 0053 00        		.byte	0
- 191 0054 00        		.byte	0
- 192 0055 01        		.byte	1
- 193 0056 02        		.byte	2
- 194 0057 02        		.byte	2
- 195 0058 01        		.byte	1
- 196 0059 00        		.byte	0
- 197 005a 05        		.byte	5
- 198 005b 24        		.byte	36
- 199 005c 00        		.byte	0
- 200 005d 01        		.byte	1
- 201 005e 10        		.byte	16
- 202 005f 04        		.byte	4
- 203 0060 24        		.byte	36
- 204 0061 02        		.byte	2
- 205 0062 06        		.byte	6
- 206 0063 05        		.byte	5
- 207 0064 24        		.byte	36
- 208 0065 06        		.byte	6
- 209 0066 00        		.byte	0
- 210 0067 01        		.byte	1
- 211 0068 07        		.byte	7
- 212 0069 05        		.byte	5
- 213 006a 82        		.byte	-126
- 214 006b 03        		.byte	3
- 215 006c 0800      		.word	8
- 216 006e FF        		.byte	-1
- 217 006f 09        		.byte	9
- 218 0070 04        		.byte	4
- 219 0071 01        		.byte	1
- 220 0072 00        		.byte	0
- 221 0073 02        		.byte	2
- 222 0074 0A        		.byte	10
- 223 0075 00        		.byte	0
- 224 0076 00        		.byte	0
- 225 0077 00        		.byte	0
- 226 0078 07        		.byte	7
- 227 0079 05        		.byte	5
- 228 007a 04        		.byte	4
- 229 007b 02        		.byte	2
- 230 007c 4000      		.word	64
- 231 007e 01        		.byte	1
- 232 007f 07        		.byte	7
- 233 0080 05        		.byte	5
- 234 0081 83        		.byte	-125
- 235 0082 02        		.byte	2
- 236 0083 4000      		.word	64
- 237 0085 01        		.byte	1
- 238               	.global	DeviceDescriptor
- 241               	DeviceDescriptor:
- 242 0086 12        		.byte	18
- 243 0087 01        		.byte	1
- 244 0088 1001      		.word	272
- 245 008a 02        		.byte	2
- 246 008b 00        		.byte	0
- 247 008c 00        		.byte	0
- 248 008d 08        		.byte	8
- 249 008e EB03      		.word	1003
- 250 0090 5260      		.word	24658
- 251 0092 0100      		.word	1
- 252 0094 01        		.byte	1
- 253 0095 02        		.byte	2
- 254 0096 DC        		.byte	-36
- 255 0097 01        		.byte	1
- 256               		.text
- 257               	.Letext0:
- 258               		.file 2 "/usr/lib/avr/include/stdint.h"
- 259               		.file 3 "/usr/lib/gcc/avr/4.8.2/include/stddef.h"
- 260               		.file 4 "../../LUFA/Drivers/USB/HighLevel/../LowLevel/../HighLevel/StdDescriptors.h"
- 261               		.file 5 "Descriptors.h"
+ 144 0014 6700      		.string	"g"
+ 145 0016 6C00      		.string	"l"
+ 146 0018 6500      		.string	"e"
+ 147 001a 00        		.string	""
+ 148 001b 00        		.string	""
+ 149               	.global	LanguageString
+ 152               	LanguageString:
+ 153 001c 04        		.byte	4
+ 154 001d 03        		.byte	3
+ 155 001e 0904      		.word	1033
+ 156               	.global	ConfigurationDescriptor
+ 159               	ConfigurationDescriptor:
+ 160 0020 09        		.byte	9
+ 161 0021 02        		.byte	2
+ 162 0022 3E00      		.word	62
+ 163 0024 02        		.byte	2
+ 164 0025 01        		.byte	1
+ 165 0026 00        		.byte	0
+ 166 0027 C0        		.byte	-64
+ 167 0028 FA        		.byte	-6
+ 168 0029 09        		.byte	9
+ 169 002a 04        		.byte	4
+ 170 002b 00        		.byte	0
+ 171 002c 00        		.byte	0
+ 172 002d 01        		.byte	1
+ 173 002e 02        		.byte	2
+ 174 002f 02        		.byte	2
+ 175 0030 01        		.byte	1
+ 176 0031 00        		.byte	0
+ 177 0032 05        		.byte	5
+ 178 0033 24        		.byte	36
+ 179 0034 00        		.byte	0
+ 180 0035 01        		.byte	1
+ 181 0036 10        		.byte	16
+ 182 0037 04        		.byte	4
+ 183 0038 24        		.byte	36
+ 184 0039 02        		.byte	2
+ 185 003a 06        		.byte	6
+ 186 003b 05        		.byte	5
+ 187 003c 24        		.byte	36
+ 188 003d 06        		.byte	6
+ 189 003e 00        		.byte	0
+ 190 003f 01        		.byte	1
+ 191 0040 07        		.byte	7
+ 192 0041 05        		.byte	5
+ 193 0042 82        		.byte	-126
+ 194 0043 03        		.byte	3
+ 195 0044 0800      		.word	8
+ 196 0046 FF        		.byte	-1
+ 197 0047 09        		.byte	9
+ 198 0048 04        		.byte	4
+ 199 0049 01        		.byte	1
+ 200 004a 00        		.byte	0
+ 201 004b 02        		.byte	2
+ 202 004c 0A        		.byte	10
+ 203 004d 00        		.byte	0
+ 204 004e 00        		.byte	0
+ 205 004f 00        		.byte	0
+ 206 0050 07        		.byte	7
+ 207 0051 05        		.byte	5
+ 208 0052 04        		.byte	4
+ 209 0053 02        		.byte	2
+ 210 0054 4000      		.word	64
+ 211 0056 01        		.byte	1
+ 212 0057 07        		.byte	7
+ 213 0058 05        		.byte	5
+ 214 0059 83        		.byte	-125
+ 215 005a 02        		.byte	2
+ 216 005b 4000      		.word	64
+ 217 005d 01        		.byte	1
+ 218               	.global	DeviceDescriptor
+ 221               	DeviceDescriptor:
+ 222 005e 12        		.byte	18
+ 223 005f 01        		.byte	1
+ 224 0060 1001      		.word	272
+ 225 0062 02        		.byte	2
+ 226 0063 00        		.byte	0
+ 227 0064 00        		.byte	0
+ 228 0065 08        		.byte	8
+ 229 0066 D016      		.word	5840
+ 230 0068 5E0A      		.word	2654
+ 231 006a 0100      		.word	1
+ 232 006c 01        		.byte	1
+ 233 006d 02        		.byte	2
+ 234 006e DC        		.byte	-36
+ 235 006f 01        		.byte	1
+ 236               		.text
+ 237               	.Letext0:
+ 238               		.file 2 "/usr/local/CrossPack-AVR-20131216/avr/include/stdint.h"
+ 239               		.file 3 "/usr/local/CrossPack-AVR-20131216/lib/gcc/avr/4.8.1/include/stddef.h"
+ 240               		.file 4 "../../LUFA/Drivers/USB/HighLevel/../LowLevel/../HighLevel/StdDescriptors.h"
+ 241               		.file 5 "Descriptors.h"
 DEFINED SYMBOLS
-                            *ABS*:0000000000000000 Descriptors.c
-     /tmp/ccgiaak4.s:2      *ABS*:000000000000003e __SP_H__
-     /tmp/ccgiaak4.s:3      *ABS*:000000000000003d __SP_L__
-     /tmp/ccgiaak4.s:4      *ABS*:000000000000003f __SREG__
-     /tmp/ccgiaak4.s:5      *ABS*:0000000000000000 __tmp_reg__
-     /tmp/ccgiaak4.s:6      *ABS*:0000000000000001 __zero_reg__
-     /tmp/ccgiaak4.s:13     .text.CALLBACK_USB_GetDescriptor:0000000000000000 CALLBACK_USB_GetDescriptor
-     /tmp/ccgiaak4.s:241    .progmem.data:0000000000000086 DeviceDescriptor
-     /tmp/ccgiaak4.s:179    .progmem.data:0000000000000048 ConfigurationDescriptor
-     /tmp/ccgiaak4.s:172    .progmem.data:0000000000000044 LanguageString
-     /tmp/ccgiaak4.s:133    .progmem.data:0000000000000002 ManufacturerString
-     /tmp/ccgiaak4.s:128    .progmem.data:0000000000000000 ProductString
+                            *ABS*:00000000 Descriptors.c
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:2      *ABS*:0000003e __SP_H__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:3      *ABS*:0000003d __SP_L__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:4      *ABS*:0000003f __SREG__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:5      *ABS*:00000000 __tmp_reg__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:6      *ABS*:00000001 __zero_reg__
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:13     .text.CALLBACK_USB_GetDescriptor:00000000 CALLBACK_USB_GetDescriptor
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:221    .progmem.data:0000005e DeviceDescriptor
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:159    .progmem.data:00000020 ConfigurationDescriptor
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:152    .progmem.data:0000001c LanguageString
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:133    .progmem.data:00000002 ManufacturerString
+/var/folders/18/rdz789l96db4t3nzhy2qwsp00000gn/T//cceL5y12.s:128    .progmem.data:00000000 ProductString
 
 NO UNDEFINED SYMBOLS

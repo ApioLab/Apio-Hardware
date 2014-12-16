@@ -11,7 +11,7 @@ apio.bootloader.tool=arduino:avrdude
 
 apio.build.f_cpu=16000000L
 apio.build.core=arduino:arduino
-apio.build.variant=apiodongle
+apio.build.variant=apiogeneral
 apio.build.board=APIO
 # Workaround for https://github.com/arduino/Arduino/pull/1695
 apio.build.extra_flags=-D__PROG_TYPES_COMPAT__
