@@ -12,6 +12,7 @@ String propertyArray[ARRAY_LENGTH];
 String valueArray[ARRAY_LENGTH];
 int numberkey=0;
 int j=0;
+int StreamingON=0;
 
 
 char sendThis[109]; //if it does not work well declare local
@@ -65,7 +66,11 @@ void divide_string(String stringToSplit) {
     {
       valueArray[j] += String(stringToSplit.charAt(i)); 
     }
-    
+    if(valueArray[j]=="s")
+    {
+      StreamingON=1;
+      property=propertyArray[j];
+    }
   }
 }
 
@@ -145,7 +150,10 @@ void select()
 void apioLoop()
 {
     SYS_TaskHandler();
-    select();
+    if(!StreamingON){
+      select();
+    }
+    
 }
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -185,6 +193,23 @@ static bool apioReceive(NWK_DataInd_t *ind)
   return true; 
 }
 
+static bool apioStream(NWK_DataInd_t *ind) 
+{ 
+  int message_size=ind->size;
+  int i;
+  char Buffer[110];
+  String receivedL="";
+  for(i=0; i<message_size; i++)
+  {
+    Buffer[i] = ind->data[i];
+    //delay(10);
+    //Serial1.write(ind->data[i]);
+   
+  }
+  value = String(Buffer);
+
+}
+
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //is used by objects to communicate with the coordinator
 void apioSend(String toSend)
@@ -220,6 +245,7 @@ void apioSetup(uint16_t objectAddress)
   PHY_SetChannel(0xf);
   PHY_SetRxState(true);
   NWK_OpenEndpoint(1, apioReceive);
+  NWK_OpenEndpoint(2, apioStream);
 
 }
 
