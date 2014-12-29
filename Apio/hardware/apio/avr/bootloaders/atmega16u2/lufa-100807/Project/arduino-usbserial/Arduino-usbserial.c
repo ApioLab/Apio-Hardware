@@ -144,7 +144,7 @@ void SetupHardware(void)
 
 	/* Hardware Initialization */
 	Serial_Init(9600, false);
-	LEDs_Init();
+	//LEDs_Init();
 	USB_Init();
 	
 	/* Set PD4 to Hi-z/input to enable charge controller */
