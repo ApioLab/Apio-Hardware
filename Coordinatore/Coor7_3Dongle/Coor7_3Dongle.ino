@@ -43,9 +43,6 @@ void setup() {
 // the loop routine runs over and over again forever:
 void loop() {
   SYS_TaskHandler(); //task management LWM
-  Serial.print("Start:");
-  Serial.print(millis());
-  Serial.println();
   if(Serial.available()>0)
   {
       comunication_protocol = ReadFromWebServer();
@@ -70,10 +67,6 @@ void loop() {
    
         
    }    
-  Serial.print("Stop:");
-  Serial.print(millis());
-  Serial.println();
-
  /*--------------------------------------------------------------------*/ 
   wdt_reset(); //watchdog reset
 }

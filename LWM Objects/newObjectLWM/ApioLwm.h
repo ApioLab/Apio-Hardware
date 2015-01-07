@@ -1,7 +1,7 @@
 /*---------------------constants definition-----------------------------*/
 
 #define COORDINATOR_ADDRESS_LWM  0
-#define ARRAY_LENGTH 10
+#define ARRAY_LENGTH 100
 
 /*---------------------variables definition-----------------------------*/
 

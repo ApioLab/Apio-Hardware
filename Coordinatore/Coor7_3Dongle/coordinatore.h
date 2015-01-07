@@ -217,7 +217,7 @@ static void appDataConf(NWK_DataReq_t *req)
   }
   nwkDataReqBusy = false;
 
-  Serial.println("");
+  //Serial.println("");
   
 }
 
@@ -243,7 +243,7 @@ static void LwmOutput_109(String devAddr,String toSend)
   message->size = len;
   message->data = (uint8_t*)(sendThis);
 
-  message->confirm = appDataConf; //callback for the management of the confirmation (option field)
+  //message->confirm = appDataConf; //callback for the management of the confirmation (option field)
                                   //and verification of ack required above
   NWK_DataReq(message); //send message
 
@@ -263,8 +263,8 @@ void LwmOutput()
       temp1=deviceAddr+":";
       //insert the first pair.
       temp2=propertyArray[j]+":"+valueArray[j]+"-";
-      Serial.print("numberkey: ");//debug
-      Serial.println(numberkey);//debug
+      //Serial.print("numberkey: ");//debug
+      //Serial.println(numberkey);//debug
 
       while(j<numberkey)
       {
@@ -323,7 +323,7 @@ static bool LwmInput(NWK_DataInd_t *ind)
 
 bool XBeeOutput_62(String devAddr, String toSend)
 {   
-  Serial.println(toSend);
+  //Serial.println(toSend);
   char toSend_char[100]; //beacause the ZBTxRequest needs a uint8_t*
   toSend.toCharArray(toSend_char, 100);
   
@@ -418,7 +418,7 @@ void XBeeOutput()
         
         //actual sending of data
         XBeeOutput_62(deviceAddr , temp1);
-       Serial.println("Ciao");
+       //Serial.println("Ciao");
         //re-inizialization
         temp1=deviceAddr+":";
    

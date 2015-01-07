@@ -30,4 +30,5 @@ void setup() {
 
 void loop(){
 	apioLoop();
+        Serial.println(property+":"+value);
 }
