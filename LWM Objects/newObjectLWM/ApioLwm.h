@@ -1,7 +1,7 @@
 /*---------------------constants definition-----------------------------*/
 
 #define COORDINATOR_ADDRESS_LWM  0
-#define ARRAY_LENGTH 100
+#define ARRAY_LENGTH 50
 
 /*---------------------variables definition-----------------------------*/
 
@@ -136,7 +136,7 @@ void select()
     value=valueArray[x];
     x++;
     flag=1;
-    //Serial1.println(property+":"+value);
+    Serial.println(property+":"+value);
   }
 }
 

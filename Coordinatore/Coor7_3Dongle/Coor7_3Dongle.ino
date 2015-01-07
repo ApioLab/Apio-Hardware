@@ -51,12 +51,12 @@ void loop() {
         {
           case('z'):
             //Serial1.println("case z"); //debug
-            XBeeOutput();
+            XBeeOutput_62(deviceAddr, content);
           break;
         
           case('l'):
             //Serial1.println("case l"); //debug
-            LwmOutput();
+            LwmOutput_109(deviceAddr,content);
             
           break;
         }

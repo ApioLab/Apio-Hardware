@@ -1,6 +1,9 @@
 /*-----------------------constants definition -------------------------------*/
 #define ARRAY_LENGTH 50
 #define COORDINATOR_ADDRESS_LWM 0
+#define BUFFER_SIZE 100
+#define del 100
+
 /*-----------------------variables definition ------------------------------*/
 
 String content; //contains the whole string: deviceAddr+property+value+...+property+value
@@ -13,7 +16,7 @@ int numberkey=0; //number of pairs property:value
 
 //declaration concerning LWM  
 static bool nwkDataReqBusy = false;
-char sendThis[109]; //if declared locally does not work well
+char sendThis[BUFFER_SIZE]; //if declared locally does not work well
 
 //declaration concerning XBEE 
 XBee xbee = XBee();
@@ -162,21 +165,30 @@ void divide_string(String stringToSplit)
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 char ReadFromWebServer()
 {
+  //l16:onoff:1-rosso:255-verde:255-blu:255-funzioni:0-
   //Serial1.println("readfrom");
+  int flagAddr=0;
   char interface=NULL;
-  delay(1); // it is needed, otherwise every now and then you lose the first character to be read!!!
+  delayMicroseconds(del); // it is needed, otherwise every now and then you lose the first character to be read!!!
   interface = Serial.read();
-  delay(1);
+  delayMicroseconds(del);
   while (Serial.available())
   {
     char buf = Serial.read();
-    delay(1);
+    delayMicroseconds(del);
+    if(buf==':'){
+      flagAddr=1;
+    }
+    if(flagAddr==0)
+    {
+      deviceAddr+=buf;
+    }
     content += buf;
-    delay(1);
+    
   }
-  //Serial1.println(content);
-
-  divide_string(content);
+  //Serial.println(content);
+  delay(1);
+  //divide_string(content);
   return interface;
 }
 /*-----------------------------------------------------LWM----------------------------------*/
@@ -185,29 +197,29 @@ char ReadFromWebServer()
 //callback for the management of the confirmation (access the field message->opzioni) and verification of ack
 static void appDataConf(NWK_DataReq_t *req)
 {
-  Serial.print("ACK: "); //debug
+  //Serial.print("ACK: "); //debug
   switch(req->status)
   {
     case NWK_SUCCESS_STATUS:
-      Serial.print(1,DEC);
+      //Serial.print(1,DEC);
       break;
     case NWK_ERROR_STATUS:
-      Serial.print(2,DEC);
+      //Serial.print(2,DEC);
       break;
     case NWK_OUT_OF_MEMORY_STATUS:
-      Serial.print(3,DEC);
+      //Serial.print(3,DEC);
       break;
     case NWK_NO_ACK_STATUS:
-      Serial.print(4,DEC);
+      //Serial.print(4,DEC);
       break;
     case NWK_NO_ROUTE_STATUS:
-      Serial.print(5,DEC);
+      //Serial.print(5,DEC);
       break;
     case NWK_PHY_CHANNEL_ACCESS_FAILURE_STATUS:
-      Serial.print(6,DEC);
+      //Serial.print(6,DEC);
       break;
     case NWK_PHY_NO_ACK_STATUS:
-      Serial.print(7,DEC);
+      //Serial.print(7,DEC);
       break;
 //    default:
 //      Serial1.print("no correspondence in ack");
@@ -217,7 +229,7 @@ static void appDataConf(NWK_DataReq_t *req)
   }
   nwkDataReqBusy = false;
 
-  //Serial.println("");
+  Serial.println("");
   
 }
 
@@ -227,10 +239,14 @@ static void LwmOutput_109(String devAddr,String toSend)
 
   //Serial1.println("LwmOutput_62");//debug
   int len = toSend.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+  //Serial.print("Lunghezza:");
+  //Serial.println(len);
   for(int g=0; g<len ;g++) 
   {
       sendThis[g]=toSend.charAt(g);
+     // Serial.write(sendThis[g]);
   }
+  //Serial.println("");
         
   //int16_t address = stringDEC_To_uint16_t(devAddr);
   
@@ -243,7 +259,7 @@ static void LwmOutput_109(String devAddr,String toSend)
   message->size = len;
   message->data = (uint8_t*)(sendThis);
 
-  //message->confirm = appDataConf; //callback for the management of the confirmation (option field)
+  message->confirm = appDataConf; //callback for the management of the confirmation (option field)
                                   //and verification of ack required above
   NWK_DataReq(message); //send message
 
