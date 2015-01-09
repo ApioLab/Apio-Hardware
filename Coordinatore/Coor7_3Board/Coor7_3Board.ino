@@ -43,22 +43,22 @@ void setup() {
 // the loop routine runs over and over again forever:
 void loop() {
   SYS_TaskHandler(); //task management LWM
-  if(Serial.available()>0)
+  if(Serial1.available()>0)
   {
       comunication_protocol = ReadFromWebServer();
               
         switch(comunication_protocol)
         {
           case('z'):
-            //Serial1.println("case z"); //debug
+            //Serial11.println("case z"); //debug
             XBeeOutput_62(deviceAddr, content);
-            //Serial.println(contatore++);  
+            //Serial1.println(contatore++);  
           break;
         
           case('l'):
-            //Serial1.println("case l"); //debug
+            //Serial11.println("case l"); //debug
             LwmOutput_109(deviceAddr,content);
-            //Serial.println(contatore++);  
+            //Serial1.println(contatore++);  
             
           break;
         }

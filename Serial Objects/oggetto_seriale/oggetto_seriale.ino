@@ -2,30 +2,33 @@
 
 #include "ApioSerial.h"
 
-int led = 13;
+
+int pinRed=null;
+int pinGreen=undefined;
+int pinBlue=undefined;
 void setup() {
-  
-  pinMode(led, OUTPUT);
-  apioSetup();
+   pinMode(pinRed,OUTPUT);
+   pinMode(pinGreen,OUTPUT);
+   pinMode(pinBlue,OUTPUT);
+   apioSetup();
 
 }
 
 void loop() {
- 
-  apioReceive();
-  select();
-  
-  if(proprieta=="onoff")
+  apioLoop();
+  if(property=="onoff")
   {
-    if(valore=="1")
-      digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
-      
-    if(valore=="0")  
-      digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
-
+    if(value=="1"){
+      analogWrite(pinRed, 1);
+      analogWrite(pinBlue 1);
+      analogWrite(pinGreen, 1);
+    }   
+    if(value=="0"){
+      analogWrite(pinRed, 0);
+      analogWrite(pinBlue 0);
+      analogWrite(pinGreen, 0);
   }
-  delay(100);               // wait for a second
-
+  if  
   
 }
 
