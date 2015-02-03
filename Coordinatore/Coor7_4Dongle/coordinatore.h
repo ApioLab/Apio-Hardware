@@ -156,14 +156,10 @@ char ReadFromWebServer()
       deviceAddr+=buf;
     }
     content += buf;
-    if(buf=='-')
-    {
-      break;
-    }
     
   }
   //Serial.println(content);
-  delayMicroseconds(del);
+  delay(1);
   //divide_string(content);
   return interface;
 }
@@ -177,7 +173,7 @@ static void appDataConf(NWK_DataReq_t *req)
   switch(req->status)
   {
     case NWK_SUCCESS_STATUS:
-      //Serial.print(1,DEC);
+      //Serial.println(1,DEC);
       break;
     case NWK_ERROR_STATUS:
       //Serial.print(2,DEC);
@@ -196,6 +192,7 @@ static void appDataConf(NWK_DataReq_t *req)
       break;
     case NWK_PHY_NO_ACK_STATUS:
       //Serial.print(7,DEC);
+      Serial.println(String(req->dstAddr)+":ping:online:0-");
       break;
 //    default:
 //      Serial1.print("no correspondence in ack");
@@ -205,7 +202,7 @@ static void appDataConf(NWK_DataReq_t *req)
   }
   nwkDataReqBusy = false;
 
-  //Serial.println("");
+  Serial.println("");
   
 }
 
@@ -239,11 +236,8 @@ static void LwmOutput_109(String devAddr,String toSend)
   message->confirm = appDataConf; //callback for the management of the confirmation (option field)
                                   //and verification of ack required above
   NWK_DataReq(message); //send message
-  delay(500);
-  Serial.println(toSend);
 
 }
-
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //to receive a packet with LWM
@@ -335,6 +329,7 @@ bool XBeeOutput_62(String devAddr, String toSend)
 //       }
 //  }
 }
+
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 bool XBeeInput()
 {
