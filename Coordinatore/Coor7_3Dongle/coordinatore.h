@@ -156,11 +156,6 @@ char ReadFromWebServer()
       deviceAddr+=buf;
     }
     content += buf;
-    if(buf=='-')
-    {
-      break;
-    }
-    
   }
   //Serial.println(content);
   delayMicroseconds(del);
@@ -239,9 +234,7 @@ static void LwmOutput_109(String devAddr,String toSend)
   message->confirm = appDataConf; //callback for the management of the confirmation (option field)
                                   //and verification of ack required above
   NWK_DataReq(message); //send message
-  delay(500);
-  Serial.println(toSend);
-
+  //delay(100);
 }
 
 
