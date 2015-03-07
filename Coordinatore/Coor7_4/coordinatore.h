@@ -1,27 +1,28 @@
+
 /*-----------------------constants definition -------------------------------*/
 #define ARRAY_LENGTH 50
-#define COORDINATOR_ADDRESS_LWM 4
+#define COORDINATOR_ADDRESS_LWM 0
+#define BUFFER_SIZE 100
+#define del 100
+
 /*-----------------------variables definition ------------------------------*/
 
 String content; //contains the whole string: deviceAddr+property+value+...+property+value
 char comunication_protocol; //which communications interface to use (and other various control commands)
 
 String deviceAddr; //destination address
-String propertyArray[ARRAY_LENGTH]; 
-String valueArray[ARRAY_LENGTH];
-int numberkey=0; //number of pairs property:value
-int StreamingON=0;//Variable setting for Streaming
+String property; 
 String value;
-//declaration concerning LWM	
+int numberkey=0; //number of pairs property:value
+char sendThis[BUFFER_SIZE];
+//declaration concerning LWM  
 static bool nwkDataReqBusy = false;
-char sendThis[109]; //if declared locally does not work well
 
-//declaration concerning XBEE	
+//declaration concerning XBEE 
 XBee xbee = XBee();
 ZBRxResponse zbRx = ZBRxResponse(); //for the package in reception
 ZBTxRequest zbTx = ZBTxRequest(); 
 ZBTxStatusResponse txStatus = ZBTxStatusResponse(); // for the response of the xbee
-
 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -109,124 +110,58 @@ uint16_t stringDEC_To_uint16_t(String string) //da cambiare perche per l wm abbi
   }
 }
 
-//LWM STREAMING
-
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-//function that saves the pairs (to send!!!) property value in their respective vector propertyArray[ARRAY_LENGTH] e valueArray[ARRAY_LENGTH];
-void divide_string(String stringToSplit)  
-{
+void divide_string(String stringToSplit) {
   
   int strlen=stringToSplit.length();
-
-
-  int i,j; //counter
-  numberkey=0;
-  deviceAddr="";
-  //empty vectors
-  for(i=0;i<ARRAY_LENGTH;i++)
-  {
-    propertyArray[i]="";
-    valueArray[i]="";
-  }
-  //counting pairs(property:value) to send
-  for(i=0; i<strlen ; i++)
-  {
-    if(stringToSplit.charAt(i)=='-')
-      numberkey++;
-  }
-  
+  //Serial1.println(stringToSplit); //debug
+  int i; //counter
+  deviceAddr=""; 
+  //Serial1.println(numberkey);
   //-----------deviceAddr----------------  
   
   for(i=0; stringToSplit.charAt(i)!=':' && i<strlen ;i++)
   {
     deviceAddr += String(stringToSplit.charAt(i));
   }
-
- //Cycling this for all property and values
-  for(j=0; j<numberkey ;j++)
+  for(i++; stringToSplit.charAt(i)!=':' && i<strlen ;i++)
   {
-    //-----------property----------------
-
-    for(i++; stringToSplit.charAt(i)!=':' && i<strlen ;i++)
-    {
-      propertyArray[j] += String(stringToSplit.charAt(i));
-    }
-    
-    //-----------value----------------  
-    
-    for(i++; stringToSplit.charAt(i)!='-' && i<strlen ;i++)
-    {
-      valueArray[j] += String(stringToSplit.charAt(i)); 
-    }
-
+      property+= String(stringToSplit.charAt(i));
+  }
+  for(i++; stringToSplit.charAt(i)!='-' && i<strlen ;i++)
+  {
+    value += String(stringToSplit.charAt(i)); 
   }
 }
 
-void streaming(String stringValue)
-{
-  int i;
-  char send[10];
-  int strlen=stringValue.length();
-  for(i=0; stringValue.charAt(i)!=':' && i<strlen ;i++)
-  {
-    deviceAddr += String(stringValue.charAt(i));
-  }
-  for(i++; stringValue.charAt(i)!='-' && i<strlen ;i++)
-  {
-    value += String(stringValue.charAt(i)); 
-  }
-  if(value!="")
-  {
-    int len = value.length(); //if i use toSend.toCharArray() the lwm packet do not get good
-    for(int g=0; g<len ;g++) 
-    {
-        send[g]=value.charAt(g);
-    }
-        
-    //int16_t address = stringDEC_To_uint16_t(devAddr);
-  
-    nwkDataReqBusy = true; 
-    NWK_DataReq_t *message = (NWK_DataReq_t*)malloc(sizeof(NWK_DataReq_t));
-    message->dstAddr = deviceAddr.toInt(); //object address
-    message->dstEndpoint = 2; 
-    message->srcEndpoint = 2;
-    //message->options = NWK_OPT_ACK_REQUEST; //request an ack
-    message->size = len;
-    message->data = (uint8_t*)(send);
-  } else {
-    StreamingON=0;
-  }
-}
 
-//In streaming I send l34:Value-
-//When streaming finish I will send l34:-
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 char ReadFromWebServer()
 {
+  //l16:onoff:1-rosso:255-verde:255-blu:255-funzioni:0-
   //Serial1.println("readfrom");
+  int flagAddr=0;
   char interface=NULL;
-  delay(1); // it is needed, otherwise every now and then you lose the first character to be read!!!
+  delayMicroseconds(del); // it is needed, otherwise every now and then you lose the first character to be read!!!
   interface = Serial.read();
-  delay(1);
+  delayMicroseconds(del);
   while (Serial.available())
   {
     char buf = Serial.read();
-    delay(1);
+    delayMicroseconds(del);
+    if(buf==':'){
+      flagAddr=1;
+    }
+    if(flagAddr==0)
+    {
+      deviceAddr+=buf;
+    }
     content += buf;
-    delay(1);
   }
-  //Serial1.println(content);
-
-  if(StreamingON)
-  {
-    streaming(content);
-    return '0';
-  } 
-  else
-  { 
-    divide_string(content);
-    return interface;
-  }
+  //Serial.println(content);
+  delayMicroseconds(del);
+  //divide_string(content);
+  return interface;
 }
 /*-----------------------------------------------------LWM----------------------------------*/
 
@@ -234,29 +169,29 @@ char ReadFromWebServer()
 //callback for the management of the confirmation (access the field message->opzioni) and verification of ack
 static void appDataConf(NWK_DataReq_t *req)
 {
-  Serial.print("ACK: "); //debug
+  //Serial.print("ACK: "); //debug
   switch(req->status)
   {
     case NWK_SUCCESS_STATUS:
-      Serial.print(1,DEC);
+      //Serial.print(1,DEC);
       break;
     case NWK_ERROR_STATUS:
-      Serial.print(2,DEC);
+      //Serial.print(2,DEC);
       break;
     case NWK_OUT_OF_MEMORY_STATUS:
-      Serial.print(3,DEC);
+      //Serial.print(3,DEC);
       break;
     case NWK_NO_ACK_STATUS:
-      Serial.print(4,DEC);
+      //Serial.print(4,DEC);
       break;
     case NWK_NO_ROUTE_STATUS:
-      Serial.print(5,DEC);
+      //Serial.print(5,DEC);
       break;
     case NWK_PHY_CHANNEL_ACCESS_FAILURE_STATUS:
-      Serial.print(6,DEC);
+      //Serial.print(6,DEC);
       break;
     case NWK_PHY_NO_ACK_STATUS:
-      Serial.print(7,DEC);
+      //Serial.print(7,DEC);
       break;
 //    default:
 //      Serial1.print("no correspondence in ack");
@@ -266,7 +201,7 @@ static void appDataConf(NWK_DataReq_t *req)
   }
   nwkDataReqBusy = false;
 
-  Serial.println("");
+  //Serial.println("");
   
 }
 
@@ -276,10 +211,15 @@ static void LwmOutput_109(String devAddr,String toSend)
 
   //Serial1.println("LwmOutput_62");//debug
   int len = toSend.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+  //Serial.print("Lunghezza:");
+  //Serial.println(len);
+  sendThis[len];
   for(int g=0; g<len ;g++) 
   {
       sendThis[g]=toSend.charAt(g);
+     // Serial.write(sendThis[g]);
   }
+  //Serial.println("");
         
   //int16_t address = stringDEC_To_uint16_t(devAddr);
   
@@ -295,63 +235,9 @@ static void LwmOutput_109(String devAddr,String toSend)
   message->confirm = appDataConf; //callback for the management of the confirmation (option field)
                                   //and verification of ack required above
   NWK_DataReq(message); //send message
-
+  //delay(100);
 }
 
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-//Create packages to be sent by checking the total length,
-//then use XbeeOutput to send the single package
-void LwmOutput()
-{
-      //Serial1.println("LwmOutput");//debug
-
-      int j=0;
-      
-      String temp1 , temp2;
-      //the first property value to be send (j=0)
-      temp1=deviceAddr+":";
-      //insert the first pair.
-      temp2=propertyArray[j]+":"+valueArray[j]+"-";
-      Serial.print("numberkey: ");//debug
-      Serial.println(numberkey);//debug
-      if(valueArray[j]=="s")
-      {
-        j++;
-        temp1+=temp2;
-        LwmOutput_109(deviceAddr , temp1);
-        StreamingON=1;
-      }
-
-      while(j<numberkey)
-      {
-
-        //add the pairs until the length is less than or equal to 109, or are over the pairs to be added(j=numberkey)
-        while( (temp1+temp2).length()<=109 && j<numberkey) 
-        {
-          j++;
-          temp1+=temp2;
-          temp2=propertyArray[j]+":"+valueArray[j]+"-";
-          //Serial1.println(temp1);
-        }
-        
-        //actual sending, but only if the network is free
-
-        while(nwkDataReqBusy)
-        {
-          SYS_TaskHandler(); //allows the arrival of ACK (appDataConf)
-          //Serial1.print(nwkDataReqBusy);        //debug
-        }
-        
-        // Serial1.println(temp1);  //debug
-        
-        //actual sending of data
-        LwmOutput_109(deviceAddr , temp1);
-
-        temp1=deviceAddr+":"+temp2;
-
-                      
-      }          
-} 
 
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 //to receive a packet with LWM
@@ -379,7 +265,7 @@ static bool LwmInput(NWK_DataInd_t *ind)
 
 bool XBeeOutput_62(String devAddr, String toSend)
 {   
-  Serial.println(toSend);
+  //Serial.println(toSend);
   char toSend_char[100]; //beacause the ZBTxRequest needs a uint8_t*
   toSend.toCharArray(toSend_char, 100);
   
@@ -399,7 +285,7 @@ bool XBeeOutput_62(String devAddr, String toSend)
 //
 //    // got a response!
 //
-//    // should be a znet tx status            	
+//    // should be a znet tx status             
 //    if (xbee.getResponse().getApiId() == ZB_TX_STATUS_RESPONSE) 
 //    {
 //      Serial1.println("ZB_TX_STATUS_RESPONSE");
@@ -444,45 +330,6 @@ bool XBeeOutput_62(String devAddr, String toSend)
 //  }
 }
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-//Create packages to be sent by checking the total length, then use XbeeOutput to send the package sigolo
-void XBeeOutput()
-{
-     //Serial1.println("XbeeOutput");//debug
-
-      int j=0;
-      
-      String temp1 , temp2;
-      
-      temp1=deviceAddr+":";
-      //the first property value to be send (j=0)
-      temp2=propertyArray[j]+":"+valueArray[j]+"-";
-      //Serial1.print("numberkey: ");//debug
-      //Serial1.println(numberkey);//debug
-
-      while(j<numberkey)
-      {
-
-        //add the pairs until the length is less than or equal to 84, or are over the pairs to be added(j=numberkey)
-       
-        while( (temp1+temp2).length()<=84 && j<numberkey) 
-        {
-          j++;
-          temp1+=temp2;
-          temp2=propertyArray[j]+":"+valueArray[j]+"-";
-          //Serial1.println(temp1);
-        }
-        
-        //actual sending of data
-        XBeeOutput_62(deviceAddr , temp1);
-       Serial.println("Ciao");
-        //re-inizialization
-        temp1=deviceAddr+":";
-   
-                      
-      }          
-} 
-
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 bool XBeeInput()
 {
   // 1. This will read any data that is available:
@@ -518,23 +365,16 @@ bool XBeeInput()
 
 void ApioCoordinatorSetup()
 {
-  
   Serial.begin(115200); //for comucicate with the web-server
   //setup Xbee
   Serial1.begin(9600);//for comunicate with  xbee
   xbee.setSerial(Serial1);
-
-  //setup Lwm
-  //---------note------------//
-  //in config.h NWK_ACK_WAIT_TIME was set at 5000;
-  //da fare:
-  //in the Lwm_output function use the costant ( file nwk.h della libreria LW_Mesh ) #define NWK_MAX_PAYLOAD_SIZE   (127 - 16/*NwkFrameHeader_t*/ - 2/*crc*/)
-  //use the costants defined in config.h
-  //-------fine appunti---------//
   SYS_Init(); //in questa funzione (di libreria LW_Mesh, file sys.c) è stata eliminata sys_Uninit_Arduino() altrimenti non funzionava bene la seriale
   NWK_SetAddr(COORDINATOR_ADDRESS_LWM);
   NWK_SetPanId(0x01);
   PHY_SetChannel(0x1a);
+  //TRX_CTRL_2_REG_s.oqpskDataRate=2;
   PHY_SetRxState(true);
   NWK_OpenEndpoint(1, LwmInput);
+  NWK_Init();
 }

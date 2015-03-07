@@ -46,7 +46,8 @@ void loop() {
   if(Serial.available()>0)
   {
       comunication_protocol = ReadFromWebServer();
-      switch(comunication_protocol)
+              
+        switch(comunication_protocol)
         {
           case('z'):
             XBeeOutput_62(deviceAddr, content);
@@ -57,18 +58,14 @@ void loop() {
           break;
           
           case('x'):
-            divide_string(content);
             if (property=="panId")
             {
               NWK_SetPanId(value.toInt());
-              Serial.println("PanId Changed");
             }
             else if(property=="channel")
             {
               PHY_SetChannel(value.toInt()); 
             }
-            property="";
-            value="";
             break;
             
         }

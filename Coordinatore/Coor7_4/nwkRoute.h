@@ -56,6 +56,7 @@ extern "C" {
 /*- Definitions ------------------------------------------------------------*/
 #define NWK_ROUTE_UNKNOWN            0xffff
 #define NWK_ROUTE_NON_ROUTING        0x8000
+#define NWK_ENABLE_ROUTING           1
 
 #ifdef NWK_ENABLE_ROUTING
 
