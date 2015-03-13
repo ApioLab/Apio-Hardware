@@ -368,13 +368,15 @@ void ApioCoordinatorSetup()
   Serial.begin(115200); //for comucicate with the web-server
   //setup Xbee
   Serial1.begin(9600);//for comunicate with  xbee
+
   xbee.setSerial(Serial1);
   SYS_Init(); //in questa funzione (di libreria LW_Mesh, file sys.c) è stata eliminata sys_Uninit_Arduino() altrimenti non funzionava bene la seriale
+  NWK_Init();
   NWK_SetAddr(COORDINATOR_ADDRESS_LWM);
   NWK_SetPanId(0x01);
   PHY_SetChannel(0x1a);
   //TRX_CTRL_2_REG_s.oqpskDataRate=2;
   PHY_SetRxState(true);
   NWK_OpenEndpoint(1, LwmInput);
-  NWK_Init();
+  
 }
