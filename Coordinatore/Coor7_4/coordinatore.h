@@ -1,4 +1,3 @@
-
 /*-----------------------constants definition -------------------------------*/
 #define ARRAY_LENGTH 50
 #define COORDINATOR_ADDRESS_LWM 0
@@ -173,29 +172,29 @@ static void appDataConf(NWK_DataReq_t *req)
   switch(req->status)
   {
     case NWK_SUCCESS_STATUS:
-      //Serial.print(1,DEC);
+      Serial.println("1:"+String(req->dstAddr));
       break;
     case NWK_ERROR_STATUS:
-      //Serial.print(2,DEC);
+      Serial.println("2:"+String(req->dstAddr));
       break;
     case NWK_OUT_OF_MEMORY_STATUS:
-      //Serial.print(3,DEC);
+      Serial.println("3:"+String(req->dstAddr));
       break;
     case NWK_NO_ACK_STATUS:
-      //Serial.print(4,DEC);
+      Serial.println("4:"+String(req->dstAddr));
       break;
     case NWK_NO_ROUTE_STATUS:
-      //Serial.print(5,DEC);
+      Serial.println("5:"+String(req->dstAddr));
       break;
     case NWK_PHY_CHANNEL_ACCESS_FAILURE_STATUS:
-      //Serial.print(6,DEC);
+      Serial.println("6:"+String(req->dstAddr));
       break;
     case NWK_PHY_NO_ACK_STATUS:
-      //Serial.print(7,DEC);
+      Serial.println("7:"+String(req->dstAddr));
       break;
-//    default:
-//      Serial1.print("no correspondence in ack");
-//      break;
+    default:
+      Serial.println("no correspondence in ack");
+      break;
      
 
   }
@@ -228,7 +227,11 @@ static void LwmOutput_109(String devAddr,String toSend)
   message->dstAddr = devAddr.toInt(); //object address
   message->dstEndpoint = 1; 
   message->srcEndpoint = 1;
-  message->options = NWK_OPT_ACK_REQUEST; //request an ack
+  if(message->dstAddr == 65535){
+  // //request an ack
+  } else {
+    message->options = NWK_OPT_ACK_REQUEST;
+  } 
   message->size = len;
   message->data = (uint8_t*)(sendThis);
 
@@ -368,15 +371,12 @@ void ApioCoordinatorSetup()
   Serial.begin(115200); //for comucicate with the web-server
   //setup Xbee
   Serial1.begin(9600);//for comunicate with  xbee
-
   xbee.setSerial(Serial1);
   SYS_Init(); //in questa funzione (di libreria LW_Mesh, file sys.c) è stata eliminata sys_Uninit_Arduino() altrimenti non funzionava bene la seriale
-  NWK_Init();
   NWK_SetAddr(COORDINATOR_ADDRESS_LWM);
   NWK_SetPanId(0x01);
   PHY_SetChannel(0x1a);
   //TRX_CTRL_2_REG_s.oqpskDataRate=2;
   PHY_SetRxState(true);
   NWK_OpenEndpoint(1, LwmInput);
-  
 }

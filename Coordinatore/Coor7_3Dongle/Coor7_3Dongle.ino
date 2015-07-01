@@ -30,19 +30,35 @@
 
 #include "coordinatore.h"
 int contatore=0;
-
+const long interval = 500; 
 void setup() {
   wdt_disable();
  /*--------------------------------------------------------------------*/ 
  ApioCoordinatorSetup(); //inizializzazione coordinatore
-  
+  pinMode(20,OUTPUT);
  /*--------------------------------------------------------------------*/  
   wdt_enable(WDTO_8S);
 }
+int ledState=LOW;
+unsigned long previousMillis = 0;
 
 // the loop routine runs over and over again forever:
 void loop() {
   SYS_TaskHandler(); //task management LWM
+  /*unsigned long currentMillis = millis();
+ 
+  if(currentMillis - previousMillis >= interval) {
+    // save the last time you blinked the LED 
+    previousMillis = currentMillis;
+    // if the LED is off turn it on and vice-versa:
+    if (ledState == LOW)
+      ledState = HIGH;
+    else
+      ledState = LOW;
+
+    // set the LED with the ledState of the variable:
+    digitalWrite(20, ledState);
+  } */
   if(Serial.available()>0)
   {
       comunication_protocol = ReadFromWebServer();
@@ -75,12 +91,14 @@ void loop() {
     comunication_protocol=NULL;
     contatore++;
    } 
-   if(contatore>1000)
+   if(contatore>500)
    {
      wdt_enable(WDTO_30MS);
      while(true)
      {
      }
+     //Serial.println("CIAOOOOOO");
+     contatore=0;
    }
      
  /*--------------------------------------------------------------------*/ 
