@@ -63,7 +63,7 @@
 #define DUPLICATE_REJECTION_TTL \
             ((NWK_DUPLICATE_REJECTION_TTL / NWK_RX_DUPLICATE_REJECTION_TIMER_INTERVAL) + 1)
 #define NWK_SERVICE_ENDPOINT_ID    0
-
+//#define NWK_ENABLE_MULTICAST       0
 /*- Types ------------------------------------------------------------------*/
 enum
 {
@@ -125,6 +125,7 @@ void PHY_DataInd(PHY_DataInd_t *ind)
   frame->size = ind->size;
   frame->rx.lqi = ind->lqi;
   frame->rx.rssi = ind->rssi;
+  //PORTE |= _BV(PE4);//HIGH
   memcpy(frame->data, ind->data, ind->size);
 }
 
@@ -291,7 +292,7 @@ static void nwkRxHandleReceivedFrame(NwkFrame_t *frame)
   NwkFrameHeader_t *header = &frame->header;
 
   frame->state = NWK_RX_STATE_FINISH;
-
+  
 #ifndef NWK_ENABLE_SECURITY
   if (header->nwkFcf.security)
     return;
@@ -318,8 +319,10 @@ static void nwkRxHandleReceivedFrame(NwkFrame_t *frame)
     }
     return;
   }
+  
 
 #ifdef NWK_ENABLE_ADDRESS_FILTER
+  
   if (!NWK_FilterAddress(header->macSrcAddr, &frame->rx.lqi))
     return;
 #endif
@@ -331,21 +334,25 @@ static void nwkRxHandleReceivedFrame(NwkFrame_t *frame)
     return;
 
 #ifdef NWK_ENABLE_ROUTING
+  
   nwkRouteFrameReceived(frame);
 #endif
-
+  
   if (nwkRxRejectDuplicate(header))
     return;
 
 #ifdef NWK_ENABLE_MULTICAST
+  
   if (header->nwkFcf.multicast)
   {
+    //PORTE |= _BV(PE4);//HIGH
     NwkFrameMulticastHeader_t *mcHeader = (NwkFrameMulticastHeader_t *)frame->payload;
     bool member = NWK_GroupIsMember(header->nwkDstAddr);
     bool broadcast = false;
 
     if (NWK_BROADCAST_ADDR == header->macDstAddr)
     {
+      
       if (member)
       {
         broadcast = mcHeader->memberRadius > 0;
@@ -401,9 +408,11 @@ static void nwkRxHandleReceivedFrame(NwkFrame_t *frame)
     #ifdef NWK_ENABLE_SECURITY
       if (header->nwkFcf.security)
         frame->state = NWK_RX_STATE_DECRYPT;
-      else
+      else{
     #endif
+      
         frame->state = NWK_RX_STATE_INDICATE;
+      }
     }
 
   #ifdef NWK_ENABLE_ROUTING
@@ -487,6 +496,7 @@ void nwkRxTaskHandler(void)
     {
       case NWK_RX_STATE_RECEIVED:
       {
+        
         nwkRxHandleReceivedFrame(frame);
       } break;
 
@@ -511,6 +521,7 @@ void nwkRxTaskHandler(void)
 
       case NWK_RX_STATE_FINISH:
       {
+        
         nwkFrameFree(frame);
       } break;
     }

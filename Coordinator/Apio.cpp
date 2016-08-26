@@ -1,3 +1,4 @@
+
 /**************************************************************************\
 * Apio Library                                                         *
 * https://github.com/Apio/library-Apio                             *
@@ -6,6 +7,24 @@
 *  This program is free software; you can redistribute it and/or modify it *
 *  under the terms of the BSD License as described in license.txt.         *
 \**************************************************************************/
+
+
+///////////////////// oled
+#include <SPI.h>
+#include <Wire.h>
+
+#include "Adafruit_GFX.h"
+#include "Adafruit_SSD1306.h"
+#define OLED_RESET 6
+Adafruit_SSD1306 display(OLED_RESET);
+#define NUMFLAKES 10
+#define XPOS 0
+#define YPOS 1
+#define DELTAY 2
+///////////////////// oled
+#define rt_baud_prescale 3   // 3 = 250K, 0 = 1M, if UCSRA = 0!!! else if = 1 Baudrate is x2 
+
+
 #include <Arduino.h>
 #include "Apio.h"
 #include <avr/eeprom.h>
@@ -15,12 +34,15 @@
 
 ApioClass Apio;
 
+boolean running_hearth = false;
+
 void divide_string(String stringToSplit) {
 
   int strlen=stringToSplit.length();
   //Serial1.println(stringToSplit); //debug
   int i; //counter
   Apio.deviceAddr="";
+  Apio.messageId="";
   Apio.property="";
   Apio.value="";
   i=0;
@@ -28,6 +50,11 @@ void divide_string(String stringToSplit) {
   {
     Apio.deviceAddr += String(stringToSplit.charAt(i));
   }
+  /*
+  for(i; stringToSplit.charAt(i)!=':' && i<strlen ;i++)
+  {
+    Apio.messageId += String(stringToSplit.charAt(i));
+  }*/
   //-----------property----------------
   for(i++; stringToSplit.charAt(i)!=':' && i<strlen ;i++)
   {
@@ -38,7 +65,6 @@ void divide_string(String stringToSplit) {
   {
     Apio.value += String(stringToSplit.charAt(i));
   }
-  
   /*int newProperty = 1;
   for(int j = 0; j<Apio.indexReceived; j++)
   {
@@ -56,7 +82,7 @@ void divide_string(String stringToSplit) {
   }*/
 
 
-  //Serial.println(Apio.property+":"+Apio.value);
+  //Serial.println(Apio.messageId);
 }
 
 static int fieldAnswerTo = 0;
@@ -79,49 +105,19 @@ static bool receive(NWK_DataInd_t *ind);
 static bool receive(NWK_DataInd_t *ind) {
   if(Apio.isDongle)
   {
+    //Serial.println("FUCK");
     int message_size=ind->size;
-    char bufferL[message_size];
+    
+    char bufferL[62]=" ";
     for(int i=0; i<message_size; i++)
     {
-      //Buffer[i] = ind->data[i];
+      //Serial.print(ind->data[i]);
       bufferL[i] = ind->data[i];
     }
-    //Apio.mex = String(ind->srcAddr)+":OK:-";
-    //Apio.sendTo = ind->srcAddr;
-    //Apio.send();
+    //Serial.println();
+    //Serial.println(ind->dstEndpoint);
+    //Serial.println(abs(ind->rssi));
     Serial.println(String(bufferL));
-    //divide_string(String(bufferL));
-    Serial.println(String(ind->srcAddr)+":update:rssi:"+String(abs(ind->rssi))+"-");
-    Serial.println(String(ind->srcAddr)+":update:lqi:"+String(ind->lqi)+"-");
-    NWK_RouteTableEntry_t *table = NWK_RouteTable();
-    int flagInsertedInTable = 0;
-    for (int i=0; i < NWK_ROUTE_TABLE_SIZE; i++) {
-      if (table[i].dstAddr == NWK_ROUTE_UNKNOWN) {
-        continue;
-      }
-      if(table[i].dstAddr==ind->srcAddr){
-        flagInsertedInTable = 1;
-      }
-      /*
-      Serial.print("Fixed "+String(i)+":");
-      Serial.println(table[i].fixed);
-      Serial.print("Multicast "+String(i)+":");
-      Serial.println(table[i].multicast);
-      Serial.print("Score "+String(i)+":");
-      Serial.println(table[i].score);
-      Serial.print("dstAddr "+String(i)+":");
-      Serial.println(table[i].dstAddr);
-      Serial.print("nextHp "+String(i)+":");
-      Serial.println(table[i].nextHopAddr);
-      */
-    }
-    if(flagInsertedInTable == 0){
-    /*if(Apio.property=="hi"){*/
-      Apio.mex = String(ind->srcAddr)+":OK:-";
-      Apio.sendTo = ind->srcAddr;
-      Apio.send();
-      Serial.println("Inviato il messaggio al nodo appena connesso");  
-    }
     return true;
   } else {
     //Serial.println("Ciao ho ricevuto questo");
@@ -138,6 +134,7 @@ static bool receive(NWK_DataInd_t *ind) {
 
     }
     //Serial.println();
+    
     NWK_SetAckControl(abs(ind->rssi));
     //Serial.println(String(Buffer));
     divide_string(String(Buffer));
@@ -219,40 +216,41 @@ static bool receive(NWK_DataInd_t *ind) {
   */
 }
 
+
 void appDataConf(NWK_DataReq_t *req)
 {
   //Serial.print("ACK: "); //debug
   switch(req->status)
   {
     case NWK_SUCCESS_STATUS:
-      if(Apio.isDongle) Serial.println("1:"+String(req->dstAddr)+"data:");
-      //Serial.print(req->data[2]);
+      //if(Apio.isDongle) Serial.println("1:"+String(req->dstAddr));
       //Serial.println(String(req->control));
       Apio.ack = 1;
+      //Serial.print("ok:"+String((const char*) req->data));
       break;
     case NWK_ERROR_STATUS:
-      if(Apio.isDongle) Serial.println("2:"+String(req->dstAddr));
+      //if(Apio.isDongle) Serial.println("2:"+String(req->dstAddr));
       Apio.ack = 2;
       break;
     case NWK_OUT_OF_MEMORY_STATUS:
-      if(Apio.isDongle) Serial.println("3:"+String(req->dstAddr));
+      //if(Apio.isDongle) Serial.println("3:"+String(req->dstAddr));
       Apio.ack = 3;
       break;
     case NWK_NO_ACK_STATUS:
-      if(Apio.isDongle) Serial.println("4:"+String(req->dstAddr));
+      //if(Apio.isDongle) Serial.println("4:"+String(req->dstAddr));
       //if(Apio.isDongle) Serial.println(req->control);
       Apio.ack = 4;
       break;
     case NWK_NO_ROUTE_STATUS:
-      if(Apio.isDongle) Serial.println("5:"+String(req->dstAddr));
+      //if(Apio.isDongle) Serial.println("5:"+String(req->dstAddr));
       Apio.ack = 5;
       break;
     case NWK_PHY_CHANNEL_ACCESS_FAILURE_STATUS:
-      if(Apio.isDongle) Serial.println("6:"+String(req->dstAddr));
+      //if(Apio.isDongle) Serial.println("6:"+String(req->dstAddr));
       Apio.ack = 6;
       break;
     case NWK_PHY_NO_ACK_STATUS:
-      if(Apio.isDongle) Serial.println("7:"+String(req->dstAddr));
+      //if(Apio.isDongle) Serial.println("7:"+String(req->dstAddr));
       Apio.ack = 7;
       break;
     default:
@@ -262,6 +260,34 @@ void appDataConf(NWK_DataReq_t *req)
 
   }
   Apio.nwkDataReqB = 0;
+  //Work Here
+  //Serial.println("Ack vale "+String(req->control));
+  int message_size=req->size;
+  
+  int i;
+  char x[100];
+  //String receivedL="";
+  //Apio.codaInvio[Apio.toInsert] = "";
+  if(Apio.ack==1){
+    Serial.print("ok:");
+    for(int j=0; j<message_size; j++)
+    {
+      x[j] = req->data[j];
+      Serial.print(x[j]);
+      //delay(10);
+      //Serial.write(ind->data[i]);
+  
+    }
+    Serial.println();
+  }
+  //Serial.println(Apio.codaInvio[Apio.toInsert]);
+  //Apio.codaRetry[Apio.toInsert]=millis();
+  //Serial.println(Apio.codaInvio[Apio.toInsert]);
+  
+  //Serial.println(Apio.toInsert);
+  /*if(Apio.ack!=1){
+    codaInvio[toInsert]=
+  }*/
   //Apio.loop();
 
 
@@ -288,6 +314,7 @@ static bool fieldAnnouncements(NWK_DataInd_t *ind);
 ApioClass::ApioClass() {
   // this has to be called as early as possible before other code uses the register
   lastResetCause = GPIOR0;
+  
 }
 
 
@@ -311,14 +338,32 @@ void ApioClass::setup(const char *sketchName, const char *sketchRevision, const 
   SYS_Init();
   PHY_RandomReq();
   NWK_Init();
+  
+  
+//  UBRR0H  = (rt_baud_prescale >>8);
+//  UBRR0L  = rt_baud_prescale;
+//  UCSR0B = ((1<<TXEN0)|(1<<RXEN0) | (1<<RXCIE0));
+  
   Serial.begin(115200);
   theAdd= theAddress;
   if(theAddress==0)
   {
     this->isDongle=1;
+    
     Serial.println("COORDINATOR ACTIVE");
+  //////////// oled setup start
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3C (for the 128x32)
+  display.clearDisplay();
+  display.display();
+  display.setTextSize(0);
+  display.setTextColor(WHITE);
+  display.setCursor(0,0);
+  display.println("COORD ACTIVE");
+  //display.setCursor(0,9);
+  //display.println("ATTIVO");
+   display.display();
+//////// oled setup start
 
-    //Serial.println("E sono gay");
   } else {
     this->isDongle=0;
     Serial.println("Sono una General");
@@ -328,10 +373,17 @@ void ApioClass::setup(const char *sketchName, const char *sketchRevision, const 
   }
 
 
-
-  meshSetRadio(theAddress, thePanId, 0x1a);
+  //loadSettingsFromEeprom();
+  //thePanId = getPanId();
+  //int pan = getPanId();
+  int pan = thePanId; 
+  Serial.println("Pan ID vale "+String(pan));
+  meshSetRadio(theAddress, pan, 0x1a);
   //Canale di ascolto di default messaggi Apio
   meshListen(1, receive);
+  for(int j=0; j<10; j++){
+    codaInvio[j]="";
+  }
 
   //loadSettingsFromEeprom();
 }
@@ -339,10 +391,15 @@ void ApioClass::setup(const char *sketchName, const char *sketchRevision, const 
 void ApioClass::loop() {
   SYS_TaskHandler();
   if(this->isDongle){
-    if(!this->hi){
+    /*if(!this->hi){
       if (this->isVerbose)
       {
         Serial.println("Invio l'hi a tutti");
+        //display.clearDisplay();
+       display.display();
+        display.setCursor(0,9);
+        display.println("TX -hi- To All ");
+        display.display();
       }
 
       this->sendTo="65535";
@@ -351,71 +408,155 @@ void ApioClass::loop() {
 
       send();
 
-    }
+    }*/
+     /*if(!this->hi && millis()>15000){
+      this->sendTo="65535";
+      this->mex = "65535:hi:m-";
+      this->hi=1;
+
+      send();
+      
+
+    }*/
     //Serial.println(ack);
     unsigned long currentMillis = millis();
     if(currentMillis - previousMillis > interval) {
       // save the last time you blinked the LED
       previousMillis = currentMillis;
       Serial.println("c");
+      
+      running_hearth = !running_hearth;
+      digitalWrite(15,running_hearth);
+      display.invertDisplay(running_hearth);
+     
     }
-    if(ack!=1 && contatoreInvii<6 && flagNoLoop != 1){
-      /*if(isVerbose) Serial.println("Non ho potuto inviare "+codaInvio+" riprovo");
-      send(codaInvio);
-      contatoreInvii++;*/
-    } else if (contatoreInvii>=6){
-      /*if(isVerbose) Serial.println("Invio avvenuto correttamente o impossibile inviare");
-      contatoreInvii = 0;
-      flagNoLoop =1;*/
+    if(currentMillis-previousTable>10000){
+      Serial.println("Here");
+      NWK_RouteTableEntry_t *table = NWK_RouteTable();
+      for (int i=0; i < NWK_ROUTE_TABLE_SIZE; i++) {
+        if (table[i].dstAddr == NWK_ROUTE_UNKNOWN) {
+          continue;
+        }
+        
+        /*Serial.print(String(i)+"|Fixed:");
+        Serial.print(table[i].fixed);
+        Serial.print("|Multicast:");
+        Serial.print(table[i].multicast);
+        Serial.print("|Score:");
+        Serial.print(table[i].score);
+        Serial.print("|dstAddr:");
+        Serial.print(table[i].dstAddr);
+        Serial.print("|nextHp:");
+        Serial.println(table[i].nextHopAddr);*/
+      }
+      previousTable = millis();
     }
+    
     if(Serial.available()){
       char c = readFromSerial();
-      if(this->isVerbose) Serial.println(c+this->sendTo+":"+this->mex);
+      //if(this->isVerbose) Serial.println(c+this->sendTo+":"+this->mex);
+        display.clearDisplay();
+        display.display();
+        display.setCursor(0,0);
+        display.println(c+this->sendTo+":"+this->mex);
+        display.setCursor(66,9);
+        display.println("ST256");
+        display.display();
       if(c=='l') {
+        flagSendInLoop=1;
 
         send();
 
-      }
-      if(c=='p'){
-        Serial.println("Here");
-        NWK_RouteTableEntry_t *table = NWK_RouteTable();
-        for (int i=0; i < NWK_ROUTE_TABLE_SIZE; i++) {
-          if (table[i].dstAddr == NWK_ROUTE_UNKNOWN) {
-            continue;
+      }else if(c=='s') {
+        //Serial.println(Apio.mex);
+        int i = 0;
+        int flagAddPropertyValue=0;
+        int len = Apio.mex.length();
+        String p = "";
+        String v = "";
+        for(i=0;i<len; i++){
+          if(Apio.mex.charAt(i)==':'){
+            flagAddPropertyValue++;
+            i++;
+          }
+          if(flagAddPropertyValue==1){
+            p+=Apio.mex.charAt(i);
+          }
+          else if(flagAddPropertyValue==2){
+            if(Apio.mex.charAt(i)!='-')
+            v+=Apio.mex.charAt(i);
           }
           
-          Serial.print(String(i)+"|Fixed:");
-          Serial.print(table[i].fixed);
-          Serial.print("|Multicast:");
-          Serial.print(table[i].multicast);
-          Serial.print("|Score:");
-          Serial.print(table[i].score);
-          Serial.print("|dstAddr:");
-          Serial.print(table[i].dstAddr);
-          Serial.print("|nextHp:");
-          Serial.println(table[i].nextHopAddr);
+        }
+        Serial.println(p);
+        if(p=="panId"){
+          if(v!=""){
+            setPanId(v.toInt());
+            meshSetRadio(0, v.toInt(), 0x1a);
+            Serial.println("Cambio panId "+v);
+          } else if(v==""){
+            int pan = getPanId();
+            Serial.println("0:update:panId:"+String(pan));
+          }
+          
+        
+        } else if(p=="hi"){
+          Serial.println("Invio l'hi");
+          this->sendTo="65535";
+          this->mex = "65535:hi:m-";
+          this->hi=1;
+    
+          send();
+          
         }
         
-        
-      }
-
+      }  else if(c=='p'){
+          Serial.println("Here");
+          NWK_RouteTableEntry_t *table = NWK_RouteTable();
+          for (int i=0; i < NWK_ROUTE_TABLE_SIZE; i++) {
+            if (table[i].dstAddr == NWK_ROUTE_UNKNOWN) {
+              continue;
+            }
+            
+            Serial.print(String(i)+"|Fixed:");
+            Serial.print(table[i].fixed);
+            Serial.print("|Multicast:");
+            Serial.print(table[i].multicast);
+            Serial.print("|Score:");
+            Serial.print(table[i].score);
+            Serial.print("|dstAddr:");
+            Serial.print(table[i].dstAddr);
+            Serial.print("|nextHp:");
+            Serial.println(table[i].nextHopAddr);
+          }
+          
+          
+        } 
     }
+    
   }
 
   if(!this->isDongle)
   {
     //This function backup the state of the object when the network goes down
-    if(this->property=="hi"){
+    /*if(this->property=="hi"){
       for(int j = 0; j<indexReceived; j++)
       {
         if(this->isVerbose) Serial.println(theAdd+":update:"+propertyReceived[j]+":"+valueReceived[j]+"-");
+        display.clearDisplay();
+        display.display();
+        display.setCursor(0,0);
+        display.println(theAdd+":update:"+propertyReceived[j]+":"+valueReceived[j]+"-");
+        display.display();
+        
         send(theAdd+":update:"+propertyReceived[j]+":"+valueReceived[j]+"-");
       }
-      this->property = "";
-    }
+      this->property = "";*/
+    //}
+    //FIX HERE
     if(ack!=1 && contatoreInvii<6){
-      if(isVerbose) Serial.println("Non ho potuto inviare "+codaInvio+" riprovo");
-      send(codaInvio);
+      //if(isVerbose) Serial.println("Non ho potuto inviare "+codaInvio+" riprovo");
+      //send(codaInvio);
       contatoreInvii++;
     } else if (contatoreInvii>=6){
       if(isVerbose) Serial.println("Invio avvenuto correttamente o impossibile inviare");
@@ -427,7 +568,7 @@ void ApioClass::loop() {
   //Qui settiamo la tabella di routing
   //Controllo della rete
 
-  bool showStatus = (indicate && lastIndicate < now && (now % indicate == 0));
+  /*bool showStatus = (indicate && lastIndicate < now && (now % indicate == 0));
   if(showStatus){
     NWK_RouteTableEntry_t *table = NWK_RouteTable();
     bool meshed = 0;
@@ -441,7 +582,7 @@ void ApioClass::loop() {
     {
       lastIndicate = now;
     }
-  }
+  }*/
 }
 
 void ApioClass::goToSleep(uint32_t sleepForMs) {
@@ -490,8 +631,9 @@ char ApioClass::readFromSerial() {
     }
     this->mex += buf;
   }
-  //Serial.println(content);
+  
   delayMicroseconds(100);
+  //Serial.println("ok:"+this->mex);
   //divide_string(content);
   return interface;
 }
@@ -583,11 +725,14 @@ void ApioClass::send(String message) {
       int len;
       int flagReinvio = 0;
       if(message != ""){
-        len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        len = String(message).length(); //if i use toSend.toCharArray() the lwm packet do not get good
         //Serial.print("Lunghezza:");
         //Serial.println(len);
+        //Serial.println("Il messaggio è");
+        //Serial.println(String(message));
         flagReinvio = 1;
-        codaInvio = message;
+        //FIX HERE
+        //codaInvio = message;
         char sendThis[len];
         //sendTo="0";
         for(int g=0; g<len ;g++)
@@ -613,6 +758,13 @@ void ApioClass::send(String message) {
         a = mex;
 
       }
+//        display.clearDisplay();
+//        display.display();
+//        display.setCursor(0,0);
+//        display.println(mex);
+//        display.setCursor(0,9);
+//        display.println("SYS TO LWM");
+//        display.display();
 
       //Serial.println(mex);
       this->nwkDataReqB = 1;
@@ -621,7 +773,7 @@ void ApioClass::send(String message) {
       //Serial.println(toSend.dstAddr);
       toSend.dstEndpoint = 1;
       toSend.srcEndpoint = 1;
-      //toSend.options = NWK_OPT_ACK_REQUEST;
+      toSend.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
       toSend.data = (uint8_t*)a.c_str();
       //Serial.println(toSend.data);
       toSend.size = len;
@@ -638,7 +790,8 @@ void ApioClass::send(String message) {
       int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
       //Serial.print("Lunghezza:");
       //Serial.println(len);
-      codaInvio = message;
+      //FIX HERE
+      //codaInvio = message;
       char sendThis[len];
       sendTo="0";
       for(int g=0; g<len ;g++)
@@ -647,6 +800,14 @@ void ApioClass::send(String message) {
         //Serial.write(sendThis[g]);
       }
       a = message;
+//        display.clearDisplay();
+//        display.display();
+//        display.setCursor(0,0);
+//        display.println(mex);
+//        display.setCursor(0,9);
+//        display.println("SYS TO LWM");
+//        display.display();
+      
       //Serial.println(mex);
       this->nwkDataReqB = 1;
 
@@ -654,7 +815,7 @@ void ApioClass::send(String message) {
       //Serial.println(toSend.dstAddr);
       toSend.dstEndpoint = 1;
       toSend.srcEndpoint = 1;
-      //toSend.options = NWK_OPT_ACK_REQUEST;
+      toSend.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
       toSend.data = (uint8_t*)a.c_str();
       //Serial.println(toSend.data);
       toSend.size = len;
@@ -690,7 +851,7 @@ void ApioClass::loadSettingsFromEeprom() {
 
 
   //Questo l'HQToken non so cosa fa
-  for (int i=0; i<32; i++) {
+  /*for (int i=0; i<32; i++) {
     buffer[i] = eeprom_read_byte((uint8_t *)8130+i);
   }
   setHQToken((char *)buffer);
@@ -702,14 +863,11 @@ void ApioClass::loadSettingsFromEeprom() {
     buffer[i] = eeprom_read_byte((uint8_t *)8162+i);
   }
   meshSetSecurityKey((uint8_t *)buffer);
-  memset(buffer, 0x00, 16);
+  memset(buffer, 0x00, 16);*/
 
 
-  if (eeprom_read_word((uint16_t *)8182) != 0xFFFF ||
-      eeprom_read_word((uint16_t *)8180) != 0xFFFF ||
-      eeprom_read_byte((uint8_t *)8179) != 0xFF) {
-    meshSetRadio(eeprom_read_word((uint16_t *)8182), eeprom_read_word((uint16_t *)8180), eeprom_read_byte((uint8_t *)8179));
-  }
+
+  /*
   if (eeprom_read_byte((uint8_t *)8178) != 0xFF) {
     meshSetPower(eeprom_read_byte((uint8_t *)8178));
   }
@@ -718,7 +876,7 @@ void ApioClass::loadSettingsFromEeprom() {
   }
   if (eeprom_read_byte((uint8_t *)8124) != 0xFF) {
     tempOffset = (int8_t)eeprom_read_byte((uint8_t *)8124);
-  }
+  }*/
 }
 
 void ApioClass::meshSetRadio(const uint16_t theAddress, const uint16_t thePanId, const uint8_t theChannel) {
@@ -734,7 +892,11 @@ void ApioClass::meshSetRadio(const uint16_t theAddress, const uint16_t thePanId,
 
   //if (eeprom_read_byte((uint8_t *)8178) != 0xFF) {
   meshSetPower(0);
-  meshSetDataRate(0);
+  meshSetDataRate(2);
+}
+
+void ApioClass::setPanId(int panId){
+eeprom_update_word((uint16_t *)8180, panId);
 }
 
 void ApioClass::meshSetChannel(const uint8_t theChannel) {
@@ -803,19 +965,19 @@ void ApioClass::meshListen(uint8_t endpoint, bool (*handler)(NWK_DataInd_t *ind)
 }
 
 void ApioClass::meshJoinGroup(uint16_t groupAddress) {
-  if (!NWK_GroupIsMember(groupAddress)) {
-    NWK_GroupAdd(groupAddress);
-  }
+  //if (!NWK_GroupIsMember(groupAddress)) {
+  //  NWK_GroupAdd(groupAddress);
+  //}
 }
 
 void ApioClass::meshLeaveGroup(uint16_t groupAddress) {
-  if (NWK_GroupIsMember(groupAddress)) {
-    NWK_GroupRemove(groupAddress);
-  }
+  //if (NWK_GroupIsMember(groupAddress)) {
+  //  NWK_GroupRemove(groupAddress);
+  //}
 }
 
 bool ApioClass::meshIsInGroup(uint16_t groupAddress) {
-  return NWK_GroupIsMember(groupAddress);
+  //return NWK_GroupIsMember(groupAddress);
 }
 
 uint16_t ApioClass::getAddress() {
@@ -823,7 +985,7 @@ uint16_t ApioClass::getAddress() {
 }
 
 uint16_t ApioClass::getPanId() {
-  return panId;
+  return eeprom_read_word((uint16_t *)8180);
 }
 
 uint8_t ApioClass::getChannel() {
@@ -925,3 +1087,6 @@ const char* ApioClass::getDataRatekbps() {
       break;
   }
 }
+
+
+////  l3032:RELE:1-

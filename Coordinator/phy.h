@@ -53,7 +53,7 @@ extern "C" {
 #include "sysConfig.h"
 
 /*- Definitions ------------------------------------------------------------*/
-#define PHY_RSSI_BASE_VAL                     (-90)
+#define PHY_RSSI_BASE_VAL                     (-255)
 
 #define PHY_ENABLE_RANDOM_NUMBER_GENERATOR
 #define PHY_HAS_AES_MODULE

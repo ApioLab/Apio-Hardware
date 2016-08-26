@@ -302,6 +302,10 @@ void PHY_TaskHandler(void)
 
   if (IRQ_STATUS_REG_s.rxEnd)
   {
+    
+    //SE si accende il led significa che ho ricevuto qualcosa
+    //PORTF &= ~_BV(PF7);//LOW
+    
     PHY_DataInd_t ind;
     uint8_t size = TST_RX_LENGTH_REG;
 
@@ -313,7 +317,7 @@ void PHY_TaskHandler(void)
     ind.lqi  = phyRxBuffer[size];
     ind.rssi = (int8_t)PHY_ED_LEVEL_REG + PHY_RSSI_BASE_VAL;
     PHY_DataInd(&ind);
-
+    
     while (TRX_STATUS_RX_AACK_ON != TRX_STATUS_REG_s.trxStatus);
 
     IRQ_STATUS_REG_s.rxEnd = 1;

@@ -1,3 +1,4 @@
+
 /**************************************************************************\
 * Apio Library                                                         *
 * https://github.com/Apio/library-Apio                             *
@@ -6,6 +7,13 @@
 *  This program is free software; you can redistribute it and/or modify it *
 *  under the terms of the BSD License as described in license.txt.         *
 \**************************************************************************/
+
+//#include "SPI.h"
+//#include "Wire.h"
+//#include <Adafruit_GFX.h>
+//#include <Adafruit_SSD1306.h>
+
+
 #ifndef LIB_Apio_H_
 #define LIB_Apio_H_
 
@@ -16,7 +24,6 @@
 #  define D(x)
 #endif
 
-#define LIMIT 25
 
 
 #include <Arduino.h>
@@ -42,13 +49,14 @@ class ApioClass {
    void loop();
 
    void goToSleep(uint32_t sleepForMs);
-
+    int flagSendfromSerial = 0;
    int8_t getTemperature();
    int8_t getTemperatureOffset(void);
    void setTemperatureOffset(int8_t offset);
    void enableExternalAref();
    void disableExternalAref();
    bool getExternalAref();
+   int flagSendInLoop=0;
 
    const char* getLastResetCause();
    void loadSettingsFromEeprom();
@@ -77,18 +85,25 @@ class ApioClass {
    void meshJoinGroup(uint16_t groupAddress);
    void meshLeaveGroup(uint16_t groupAddress);
    bool meshIsInGroup(uint16_t groupAddress);
+   void setPanId(int panId);
+   //int getPanId();
 
 
-   String propertyReceived[LIMIT];
-   String valueReceived[LIMIT];
    int indexReceived = 0;
+   
+   unsigned long millisRetry = 0;
 
    String mex = "";
    String sendTo = "";
 
    int contatoreInvii=0;
    int ack;
-   String codaInvio;
+
+
+   int toLeave=0;
+   int toInsert=0;
+   String codaInvio[10];
+   unsigned long codaRetry[10];
 
    void send(String message="");
 
@@ -114,6 +129,7 @@ class ApioClass {
 
 
    String deviceAddr;
+   String messageId;
    String property;
    String value;
 
@@ -126,6 +142,7 @@ class ApioClass {
    int isVerbose = 1;
 
    long previousMillis = 0;
+   long previousTable = 0;
    long interval = 1000;
 
    String theAdd = "";
