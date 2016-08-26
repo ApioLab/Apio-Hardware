@@ -38,7 +38,7 @@ void divide_string(String stringToSplit) {
   {
     Apio.value += String(stringToSplit.charAt(i));
   }
-  int newProperty = 1;
+  /*int newProperty = 1;
   for(int j = 0; j<Apio.indexReceived; j++)
   {
     if(Apio.propertyReceived[j]==Apio.property)
@@ -52,10 +52,10 @@ void divide_string(String stringToSplit) {
     Apio.propertyReceived[Apio.indexReceived]=Apio.property;
     Apio.valueReceived[Apio.indexReceived]= Apio.value;
     Apio.indexReceived++;
-  }
+  }*/
 
-
-  //Serial.println(Apio.property+":"+Apio.value);
+  Serial.print("Divide_String ");
+  Serial.println(Apio.property+":"+Apio.value);
 }
 
 static int fieldAnswerTo = 0;
@@ -67,6 +67,17 @@ static StringBuffer fieldCommand(0, 16);
 StringBuffer a;
 
 static NWK_DataReq_t toSend;
+static NWK_DataReq_t mes;
+static NWK_DataReq_t mes1;
+static NWK_DataReq_t mes2;
+static NWK_DataReq_t mes3;
+static NWK_DataReq_t mes4;
+static NWK_DataReq_t mes5;
+static NWK_DataReq_t mes6;
+static NWK_DataReq_t mes7;
+static NWK_DataReq_t mes8;
+
+
 
 
 
@@ -79,7 +90,7 @@ static bool receive(NWK_DataInd_t *ind) {
   if(Apio.isDongle)
   {
     int message_size=ind->size;
-    char bufferL[62];
+    char bufferL[message_size];
     for(int i=0; i<message_size; i++)
     {
       //Buffer[i] = ind->data[i];
@@ -103,14 +114,16 @@ static bool receive(NWK_DataInd_t *ind) {
     }
     //Serial.println();
     NWK_SetAckControl(abs(ind->rssi));
-    //Serial.println(String(Buffer));
+    Serial.print("Ho ricevuto: ");
+    Serial.println(String(Buffer));
+    
     divide_string(String(Buffer));
 
-    for(int i=0; i<100; i++)
+    /*for(int i=0; i<100; i++)
     {
       Buffer[i]=NULL;
 
-    }
+    }*/
     return true;
 
   }
@@ -186,6 +199,7 @@ static bool receive(NWK_DataInd_t *ind) {
 void appDataConf(NWK_DataReq_t *req)
 {
   //Serial.print("ACK: "); //debug
+  Serial.println("AppDataConf");
   switch(req->status)
   {
     case NWK_SUCCESS_STATUS:
@@ -225,6 +239,84 @@ void appDataConf(NWK_DataReq_t *req)
 
   }
   Apio.nwkDataReqB = 0;
+  int message_size=req->size;
+  //Serial.println("ACK is "+String(req->control));
+  int i;
+  char x[100];
+  //String receivedL="";
+  //Apio.codaInvio[Apio.toInsert] = "";
+  for(int j=0; j<message_size; j++)
+  {
+    x[j] = req->data[j];
+    //Serial.print(x[j]);
+    //delay(10);
+    Serial.write(req->data[j]);
+
+  }
+  
+  //Apio.loop();
+
+
+
+}
+
+void appDataConf2(NWK_DataReq_t *req2)
+{
+  Serial.println("AppDataConf2"); //debug
+  switch(req2->status)
+  {
+    case NWK_SUCCESS_STATUS:
+      //if(Apio.isDongle) Serial.println("1:"+String(req->dstAddr));
+      //Serial.println(String(req->control));
+      Apio.ack = 1;
+      break;
+    case NWK_ERROR_STATUS:
+      //if(Apio.isDongle) Serial.println("2:"+String(req->dstAddr));
+      Apio.ack = 2;
+      break;
+    case NWK_OUT_OF_MEMORY_STATUS:
+      //if(Apio.isDongle) Serial.println("3:"+String(req->dstAddr));
+      Apio.ack = 3;
+      break;
+    case NWK_NO_ACK_STATUS:
+      //if(Apio.isDongle) Serial.println("4:"+String(req->dstAddr));
+      //if(Apio.isDongle) Serial.println(req->control);
+      Apio.ack = 4;
+      break;
+    case NWK_NO_ROUTE_STATUS:
+      //if(Apio.isDongle) Serial.println("5:"+String(req->dstAddr));
+      Apio.ack = 5;
+      break;
+    case NWK_PHY_CHANNEL_ACCESS_FAILURE_STATUS:
+      //if(Apio.isDongle) Serial.println("6:"+String(req->dstAddr));
+      Apio.ack = 6;
+      break;
+    case NWK_PHY_NO_ACK_STATUS:
+      //if(Apio.isDongle) Serial.println("7:"+String(req->dstAddr));
+      Apio.ack = 7;
+      break;
+    default:
+      //if(Apio.isDongle) Serial.println("no correspondence in ack");
+      break;
+
+
+  }
+  Apio.nwkDataReqB = 0;
+  int message_size=req2->size;
+  Serial.println("ACK is "+String(Apio.ack));
+  int i;
+  char x[100];
+  //String receivedL="";
+  //Apio.codaInvio[Apio.toInsert] = "";
+  for(int j=0; j<message_size; j++)
+  {
+    x[j] = req2->data[j];
+    //Serial.print(x[j]);
+    //delay(10);
+    Serial.write(req2->data[j]);
+
+  }
+  
   //Apio.loop();
 
 
@@ -268,39 +360,53 @@ ApioClass::~ApioClass() { }
 */
 
 void ApioClass::setup(const char *sketchName, const char *sketchRevision, const uint16_t theAddress, const uint16_t thePanId) {
-  this->sketchName = sketchName;
+  this->appId = sketchName;
   this->sketchRevision = sketchRevision;
   this->hi = 0;
+  this->flagDeleted = 0;
   SYS_Init();
   PHY_RandomReq();
   NWK_Init();
   Serial.begin(115200);
   theAdd= theAddress;
+  //Serial.println(theAdd);
+  //pinMode(20,OUTPUT);
+  //pinMode(21,OUTPUT);
+  
   if(theAddress==0)
   {
     this->isDongle=1;
     Serial.println("COORDINATOR ACTIVE");
+    //meshSetRadio(theAddress, thePanId, 0x1a);
+    loadSettingsFromEeprom();
 
     //Serial.println("E sono gay");
   } else {
     this->isDongle=0;
     Serial.println("Sono una General");
-    send(String(theAddress)+":hi::-");
+    if(theAddress==9999){
+        eraseEeprom();
 
+      }
+      else if(theAddress==9998){
+        loadSettingsFromEeprom();
 
+      } else {
+        meshSetRadio(theAddress, thePanId, 0x1a);
+      }
   }
-
-
-
-  meshSetRadio(theAddress, thePanId, 0x1a);
   //Canale di ascolto di default messaggi Apio
   meshListen(1, receive);
+  currMillis = millis();
+  preMillis = currMillis;
+  SYS_TaskHandler();
 
   //loadSettingsFromEeprom();
 }
 
 void ApioClass::loop() {
   SYS_TaskHandler();
+  sendInLoop = 0;
   if(this->isDongle){
     if(!this->hi){
       if (this->isVerbose)
@@ -339,36 +445,121 @@ void ApioClass::loop() {
         send();
 
       }
+      else if(c=='0'){
+        //0:panId:1:dataRate:0:radioPower:1-
+        int strlen=this->mex.length();
+        String panId;
+        String dataRate;
+        String radioPower;
+        int j=0;
+        String command="";
+        String value = "";
+        int i=0;
+        //Serial.println(this->mex);
+        while(j<strlen){
+          for (i; this->mex[i]!=':' ; i++){
+            command+=this->mex[i];
+            j++;
+          }
+          if(command!=""){
+            j++;
+            for (i++; this->mex[i]!=':' && this->mex[i]!='-' ; i++){
+              value+=this->mex[i];
+              j++;
+            }
+          }
+          i++;
+          if(command=="panId"){
+            panId = value;
+          }
+          if(command=="dataRate"){
+            dataRate = value;
+          }
+          if(command=="radioPower"){
+            radioPower = value;
+          }
+          j++;
+          command="";
+          value = "";
+        }
+        saveEepromAddress(0, panId.toInt(), 0x1a );
+        meshSetRadio(0, panId.toInt(), 0x1a);
+
+      }
 
     }
   }
-
+  
   if(!this->isDongle)
   {
+
+    //fade(delFade, fadeOn);
     //This function backup the state of the object when the network goes down
     if(this->property=="hi"){
       for(int j = 0; j<indexReceived; j++)
       {
         if(this->isVerbose) Serial.println(theAdd+":update:"+propertyReceived[j]+":"+valueReceived[j]+"-");
-        send(theAdd+":update:"+propertyReceived[j]+":"+valueReceived[j]+"-");
+        //send(theAdd+":update:"+propertyReceived[j]+":"+valueReceived[j]+"-");
       }
       this->property = "";
     }
-    if(ack!=1 && contatoreInvii<6){
+    if(this->property=="setmesh"){
+      digitalWrite(11,HIGH);
+      Serial.println("Ciao");
+      String add = "";
+      String pan = "";
+      int i=0;
+      while(i<6){
+        if(i<4){
+          add+= this->value[i];
+        }
+        else {
+          pan+=this->value[i];
+        }
+        i++;
+      }
+      //Serial.println(add);
+      //Serial.println(pan);
+      if(add=="9998"){
+        this->flagDeleted = 1;
+        eraseEeprom();
+
+
+      } else {
+        
+        saveEepromAddress(add.toInt(), pan.toInt(), 0x1a);
+        
+        meshSetRadio(add.toInt(), pan.toInt(), 0x1a);
+
+      }
+
+      this->property="";
+      this->value="";
+
+    }
+    /*
+    if(ack!=1 && flagSend==1){
+      if(isVerbose) Serial.println("Smetto di inviare come un matto");
+      ack=1;
+      flagSend=0;
+
+    }
+    else if(ack!=1 && contatoreInvii<6 && flagSend==0){
       if(isVerbose) Serial.println("Non ho potuto inviare "+codaInvio+" riprovo");
       send(codaInvio);
       contatoreInvii++;
-    } else if (contatoreInvii>=6){
+    } else if (contatoreInvii>=6 && flagSend==0){
       if(isVerbose) Serial.println("Invio avvenuto correttamente o impossibile inviare");
       contatoreInvii = 0;
       ack=1;
-    }
+      flagSend=1;
+    }*/
   }
 
   //Qui settiamo la tabella di routing
   //Controllo della rete
 
-  bool showStatus = (indicate && lastIndicate < now && (now % indicate == 0));
+  /*bool showStatus = (indicate && lastIndicate < now && (now % indicate == 0));
   if(showStatus){
     NWK_RouteTableEntry_t *table = NWK_RouteTable();
     bool meshed = 0;
@@ -382,7 +573,37 @@ void ApioClass::loop() {
     {
       lastIndicate = now;
     }
+  }*/
+}
+
+void ApioClass::fade(int del, int flagFade){
+  
+  if(flagFade){
+    //Serial.println("I'm HERE");
+    currMillis = millis();
+    if(currMillis - preMillis>del){
+      analogWrite(20, brightness);
+      analogWrite(21, brightnessNeg);
+      // change the brightness for next time through the loop:
+      brightness = brightness + fadeAmount;
+
+      // reverse the direction of the fading at the ends of the fade:
+      if (brightness == 0 || brightness == 255) {
+        fadeAmount = -fadeAmount ;
+      }
+      brightnessNeg=255-brightness;
+    // wait for 30 milliseconds to see the dimming effect
+      preMillis = currMillis;
+
+    }
   }
+  else {
+    analogWrite(20, 0);
+    analogWrite(21, 0);
+    currMillis = millis();
+    preMillis = currMillis;
+  }
+
 }
 
 void ApioClass::goToSleep(uint32_t sleepForMs) {
@@ -562,7 +783,7 @@ void ApioClass::send(String message) {
       //Serial.println(toSend.dstAddr);
       toSend.dstEndpoint = 1;
       toSend.srcEndpoint = 1;
-      //toSend.options = NWK_OPT_ACK_REQUEST;
+      toSend.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
       toSend.data = (uint8_t*)a.c_str();
       //Serial.println(toSend.data);
       toSend.size = len;
@@ -573,36 +794,608 @@ void ApioClass::send(String message) {
     }
 
   } else {
+    
+    Serial.println("Invio e send In Loop vale" + String(sendInLoop));
     if(!nwkDataReqB)
     {
       //Serial.println("Voglio inviare e sono un dongle");
-      int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
-      //Serial.print("Lunghezza:");
-      //Serial.println(len);
-      codaInvio = message;
-      char sendThis[len];
-      sendTo="0";
-      for(int g=0; g<len ;g++)
-      {
-          sendThis[g]=message.charAt(g);
-        //Serial.write(sendThis[g]);
-      }
-      a = message;
-      //Serial.println(mex);
-      this->nwkDataReqB = 1;
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        
+        //Serial.println(len);
+        codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        //Serial.println(mex);
+        this->nwkDataReqB = 1;
+  
+        toSend.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        toSend.dstEndpoint = 1;
+        toSend.srcEndpoint = 1;
+        toSend.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;        toSend.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        toSend.size = len;
+        toSend.confirm = appDataConf;
+        NWK_DataReq(&toSend);
+        mex = "";
+        //Serial.print("Lunghezza:");
+      } else {
+        Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
 
-      toSend.dstAddr = this->sendTo.toInt();
-      //Serial.println(toSend.dstAddr);
-      toSend.dstEndpoint = 1;
-      toSend.srcEndpoint = 1;
-      //toSend.options = NWK_OPT_ACK_REQUEST;
-      toSend.data = (uint8_t*)a.c_str();
-      //Serial.println(toSend.data);
-      toSend.size = len;
-      toSend.confirm = appDataConf;
-      NWK_DataReq(&toSend);
-      mex = "";
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        this->nwkDataReqB = 1;
+  
+        toSend.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        toSend.dstEndpoint = 1;
+        toSend.srcEndpoint = 1;
+        toSend.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        toSend.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        toSend.size = len;
+        toSend.confirm = appDataConf;
+        NWK_DataReq(&toSend);
+        mex = "";
+      }
+    } else if(sendInLoop==1) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes.dstEndpoint = 1; 
+        mes.srcEndpoint = 1;
+        mes.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes.data =(uint8_t*)a.c_str();
+        mes.size = len;
+        mes.confirm = appDataConf2;
+        NWK_DataReq(&mes);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes.dstEndpoint = 1;
+        mes.srcEndpoint = 1;
+        mes.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes.size = len;
+        mes.confirm = appDataConf;
+        NWK_DataReq(&mes);
+        mex = "";
     }
+   } else if(sendInLoop==2) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes1.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes1.dstEndpoint = 1; 
+        mes1.srcEndpoint = 1;
+        mes1.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;; //richiedo un ack
+        mes1.data =(uint8_t*)a.c_str();
+        mes1.size = len;
+        mes1.confirm = appDataConf;
+        NWK_DataReq(&mes1);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes1.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes1.dstEndpoint = 1;
+        mes1.srcEndpoint = 1;
+        mes1.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes1.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes1.size = len;
+        mes1.confirm = appDataConf;
+        NWK_DataReq(&mes1);
+        mex = "";
+    }
+   } else if(sendInLoop==3) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes2.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes2.dstEndpoint = 1; 
+        mes2.srcEndpoint = 1;
+        mes2.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes2.data =(uint8_t*)a.c_str();
+        mes2.size = len;
+        mes2.confirm = appDataConf;
+        NWK_DataReq(&mes2);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes2.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes2.dstEndpoint = 1;
+        mes2.srcEndpoint = 1;
+        mes2.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes2.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes2.size = len;
+        mes2.confirm = appDataConf;
+        NWK_DataReq(&mes2);
+        mex = "";
+    }
+   } else if(sendInLoop==4) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes3.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes3.dstEndpoint = 1; 
+        mes3.srcEndpoint = 1;
+        mes3.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes3.data =(uint8_t*)a.c_str();
+        mes3.size = len;
+        mes3.confirm = appDataConf;
+        NWK_DataReq(&mes3);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes3.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes3.dstEndpoint = 1;
+        mes3.srcEndpoint = 1;
+        mes3.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes3.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes3.size = len;
+        mes3.confirm = appDataConf;
+        NWK_DataReq(&mes3);
+        mex = "";
+    }
+   } else if(sendInLoop==4) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes3.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes3.dstEndpoint = 1; 
+        mes3.srcEndpoint = 1;
+        mes3.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes3.data =(uint8_t*)a.c_str();
+        mes3.size = len;
+        mes3.confirm = appDataConf;
+        NWK_DataReq(&mes3);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes3.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes3.dstEndpoint = 1;
+        mes3.srcEndpoint = 1;
+        mes3.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes3.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes3.size = len;
+        mes3.confirm = appDataConf;
+        NWK_DataReq(&mes3);
+        mex = "";
+    }
+   } else if(sendInLoop==5) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes4.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes4.dstEndpoint = 1; 
+        mes4.srcEndpoint = 1;
+        mes4.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes4.data =(uint8_t*)a.c_str();
+        mes4.size = len;
+        mes4.confirm = appDataConf;
+        NWK_DataReq(&mes4);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes4.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes4.dstEndpoint = 1;
+        mes4.srcEndpoint = 1;
+        mes4.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes4.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes4.size = len;
+        mes4.confirm = appDataConf;
+        NWK_DataReq(&mes4);
+        mex = "";
+    }
+   } else if(sendInLoop==6) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes5.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes5.dstEndpoint = 1; 
+        mes5.srcEndpoint = 1;
+        mes5.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes5.data =(uint8_t*)a.c_str();
+        mes5.size = len;
+        mes5.confirm = appDataConf;
+        NWK_DataReq(&mes5);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes5.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes5.dstEndpoint = 1;
+        mes5.srcEndpoint = 1;
+        mes5.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes5.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes5.size = len;
+        mes5.confirm = appDataConf;
+        NWK_DataReq(&mes5);
+        mex = "";
+    }
+   } else if(sendInLoop==7) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes6.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes6.dstEndpoint = 1; 
+        mes6.srcEndpoint = 1;
+        mes6.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes6.data =(uint8_t*)a.c_str();
+        mes6.size = len;
+        mes6.confirm = appDataConf;
+        NWK_DataReq(&mes6);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes6.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes6.dstEndpoint = 1;
+        mes6.srcEndpoint = 1;
+        mes6.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes6.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes6.size = len;
+        mes6.confirm = appDataConf;
+        NWK_DataReq(&mes6);
+        mex = "";
+    }
+   } else if(sendInLoop==8) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes7.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes7.dstEndpoint = 1; 
+        mes7.srcEndpoint = 1;
+        mes7.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes7.data =(uint8_t*)a.c_str();
+        mes7.size = len;
+        mes7.confirm = appDataConf;
+        NWK_DataReq(&mes7);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes7.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes7.dstEndpoint = 1;
+        mes7.srcEndpoint = 1;
+        mes7.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes7.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes7.size = len;
+        mes7.confirm = appDataConf;
+        NWK_DataReq(&mes7);
+        mex = "";
+    }
+   } else if(sendInLoop==9) {
+      if(message!=""){
+        int len = message.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+        sendTo="0";
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=message.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = message;
+        
+        mes8.dstAddr = this->sendTo.toInt(); //indirizzo dell'oggetto
+        mes8.dstEndpoint = 1; 
+        mes8.srcEndpoint = 1;
+        mes8.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes8.data =(uint8_t*)a.c_str();
+        mes8.size = len;
+        mes8.confirm = appDataConf;
+        NWK_DataReq(&mes8);
+        
+    } else {
+      Serial.println("Here");
+        int len = mex.length(); //if i use toSend.toCharArray() the lwm packet do not get good
+        //Serial.print("Lunghezza:");
+        //Serial.println(len);
+        //codaInvio = message;
+        char sendThis[len];
+
+        for(int g=0; g<len ;g++)
+        {
+            sendThis[g]=mex.charAt(g);
+          //Serial.write(sendThis[g]);
+        }
+        a = mex;
+        //Serial.println(mex);
+        //this->nwkDataReqB = 1;
+  
+        mes8.dstAddr = this->sendTo.toInt();
+        //Serial.println(toSend.dstAddr);
+        mes8.dstEndpoint = 1;
+        mes8.srcEndpoint = 1;
+        mes8.options = NWK_OPT_ACK_REQUEST|NWK_OPT_ENABLE_SECURITY;
+        mes8.data = (uint8_t*)a.c_str();
+        //Serial.println(toSend.data);
+        mes8.size = len;
+        mes8.confirm = appDataConf;
+        NWK_DataReq(&mes8);
+        mex = "";
+    }
+   }
 
 
 
@@ -610,7 +1403,27 @@ void ApioClass::send(String message) {
 
   }
   // TODO - Send state to HQ, and set pin values and pinmodes from response
+  SYS_TaskHandler();
+  sendInLoop++;
 }
+
+void ApioClass::eraseEeprom(){
+  if(eeprom_read_word((uint16_t *)8182) != 0x9999){
+    Serial.println("NONE");
+    eeprom_update_word((uint16_t *)8182, 0x9999);
+    eeprom_update_word((uint16_t *)8180, 0x01);
+    eeprom_update_byte((uint8_t *)8179, 0x1a);
+  }
+  meshSetRadio(9999, 0x01, 0x1a);
+}
+
+void ApioClass::saveEepromAddress(const uint16_t theAddress, const uint16_t thePanId, const uint8_t theChannel){
+  eeprom_update_word((uint16_t *)8182, theAddress);
+  eeprom_update_word((uint16_t *)8180, thePanId);
+  eeprom_update_byte((uint8_t *)8179, theChannel);
+}
+
+
 
 void ApioClass::loadSettingsFromEeprom() {
   // Address 8124 - 1 byte   - Temperature offset
@@ -631,7 +1444,7 @@ void ApioClass::loadSettingsFromEeprom() {
 
 
   //Questo l'HQToken non so cosa fa
-  for (int i=0; i<32; i++) {
+  /*for (int i=0; i<32; i++) {
     buffer[i] = eeprom_read_byte((uint8_t *)8130+i);
   }
   setHQToken((char *)buffer);
@@ -645,37 +1458,66 @@ void ApioClass::loadSettingsFromEeprom() {
   meshSetSecurityKey((uint8_t *)buffer);
   memset(buffer, 0x00, 16);
 
-
-  if (eeprom_read_word((uint16_t *)8182) != 0xFFFF ||
-      eeprom_read_word((uint16_t *)8180) != 0xFFFF ||
-      eeprom_read_byte((uint8_t *)8179) != 0xFF) {
-    meshSetRadio(eeprom_read_word((uint16_t *)8182), eeprom_read_word((uint16_t *)8180), eeprom_read_byte((uint8_t *)8179));
+  */
+  if(this->isDongle){
+    if (eeprom_read_word((uint16_t *)8182) != 0x0000 ||
+        eeprom_read_word((uint16_t *)8180) != 0x01 ||
+        eeprom_read_byte((uint8_t *)8179) != 0x1a) {
+          //Serial.println(eeprom_read_word((uint16_t *)8180));
+      meshSetRadio(eeprom_read_word((uint16_t *)8182), eeprom_read_word((uint16_t *)8180), eeprom_read_byte((uint8_t *)8179));
+    }
+    else {
+      meshSetRadio(0x0000, 0x01, 0x1a);
+    }
   }
-  if (eeprom_read_byte((uint8_t *)8178) != 0xFF) {
+  else {
+    if (eeprom_read_word((uint16_t *)8182) != 0x9999 ||
+        eeprom_read_word((uint16_t *)8180) != 0x01 ||
+        eeprom_read_byte((uint8_t *)8179) != 0x1a) {
+      meshSetRadio(eeprom_read_word((uint16_t *)8182), eeprom_read_word((uint16_t *)8180), eeprom_read_byte((uint8_t *)8179));
+    }
+    else {
+      meshSetRadio(9999, 0x01, 0x1a);
+    }
+  }
+
+  /*if (eeprom_read_byte((uint8_t *)8178) != 0xFF) {
     meshSetPower(eeprom_read_byte((uint8_t *)8178));
   }
   if (eeprom_read_byte((uint8_t *)8126) != 0xFF) {
     meshSetDataRate(eeprom_read_byte((uint8_t *)8126));
-  }
+  }*/
+  /*
   if (eeprom_read_byte((uint8_t *)8124) != 0xFF) {
     tempOffset = (int8_t)eeprom_read_byte((uint8_t *)8124);
-  }
+  }*/
 }
 
 void ApioClass::meshSetRadio(const uint16_t theAddress, const uint16_t thePanId, const uint8_t theChannel) {
+  if(theAddress==9999){
+    //fadeOn=1;
+  } else {
+    //fadeOn=0;
+  }
   NWK_SetAddr(theAddress);
   address = theAddress;
   NWK_SetPanId(thePanId);
-  panId = thePanId;
+  PanId = thePanId;
   meshSetChannel(theChannel);
   PHY_SetRxState(true);
+  //Serial.println(address);
+  //Serial.println(thePanId);
 
   //eeprom_update_word((uint16_t *)8182, address);
   //eeprom_update_word((uint16_t *)8180, panId);
 
   //if (eeprom_read_byte((uint8_t *)8178) != 0xFF) {
   meshSetPower(0);
-  meshSetDataRate(3);
+  meshSetDataRate(2);
+  if(!this->isDongle && !this->flagDeleted){
+    send(String(theAddress)+":hi:appId:"+appId+"-");
+    this->flagDeleted = 0;
+  }
 }
 
 void ApioClass::meshSetChannel(const uint8_t theChannel) {
@@ -744,19 +1586,19 @@ void ApioClass::meshListen(uint8_t endpoint, bool (*handler)(NWK_DataInd_t *ind)
 }
 
 void ApioClass::meshJoinGroup(uint16_t groupAddress) {
-  if (!NWK_GroupIsMember(groupAddress)) {
-    NWK_GroupAdd(groupAddress);
-  }
+  //if (!NWK_GroupIsMember(groupAddress)) {
+  //  NWK_GroupAdd(groupAddress);
+  //}
 }
 
 void ApioClass::meshLeaveGroup(uint16_t groupAddress) {
-  if (NWK_GroupIsMember(groupAddress)) {
-    NWK_GroupRemove(groupAddress);
-  }
+  //if (NWK_GroupIsMember(groupAddress)) {
+  //  NWK_GroupRemove(groupAddress);
+  //}
 }
 
 bool ApioClass::meshIsInGroup(uint16_t groupAddress) {
-  return NWK_GroupIsMember(groupAddress);
+  //return NWK_GroupIsMember(groupAddress);
 }
 
 uint16_t ApioClass::getAddress() {

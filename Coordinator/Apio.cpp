@@ -117,7 +117,9 @@ static bool receive(NWK_DataInd_t *ind) {
     //Serial.println();
     //Serial.println(ind->dstEndpoint);
     //Serial.println(abs(ind->rssi));
+    NWK_SetAckControl(abs(ind->rssi));
     Serial.println(String(bufferL));
+    
     return true;
   } else {
     //Serial.println("Ciao ho ricevuto questo");

@@ -1,13 +1,17 @@
-
 #include "Apio.h"
 #include "property.h"
-int pin20=20;
-int pin21=21;
+//Library for the watchdog
+#include <avr/wdt.h>
+
+
 void setup() {
-	Apio.setup("Miiiio", "1,0", 18, 0x01);
-	
+  Apio.setup("", "1,0", 1, 0x01);
 }
+unsigned long previousMillis = 0;
 void loop(){
 	Apio.loop();
-	
+        if(millis()-previousMillis>5000){
+          previousMillis=millis();
+          Apio.send("1:onoff:0-");
+        }
 }

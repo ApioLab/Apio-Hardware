@@ -52,7 +52,7 @@ extern "C" {
 
 /*- Definitions ------------------------------------------------------------*/
 #ifndef NWK_BUFFERS_AMOUNT
-#define NWK_BUFFERS_AMOUNT                       3
+#define NWK_BUFFERS_AMOUNT                       5
 #endif
 
 #ifndef NWK_DUPLICATE_REJECTION_TABLE_SIZE
@@ -72,7 +72,7 @@ extern "C" {
 #endif
 
 #ifndef NWK_ACK_WAIT_TIME
-#define NWK_ACK_WAIT_TIME                        100 // ms
+#define NWK_ACK_WAIT_TIME                        1000 // ms
 #endif
 
 #ifndef NWK_GROUPS_AMOUNT
@@ -89,7 +89,7 @@ extern "C" {
 
 #define NWK_ENABLE_ROUTING 1
 #define NWK_ENABLE_SECURITY
-#define NWK_ENABLE_MULTICAST
+//#define NWK_ENABLE_MULTICAST
 #define NWK_ENABLE_ROUTE_DISCOVERY
 #define NWK_ENABLE_SECURE_COMMANDS
 

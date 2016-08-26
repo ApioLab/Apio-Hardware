@@ -40,7 +40,26 @@
  *
  * $Id: phy.c 9200 2014-02-18 21:10:58Z ataradov $
  *
+
  */
+// void main (void)
+// {
+ // settiamo il pin13 (PB5) come output
+// DDRB |= _BV(DDB5);
+
+// while(1) {
+ /* accendi il led */
+ //PORTB |= _BV(PORTB5);
+// _delay_ms(500);
+
+ /* spegni il led */
+ //PORTB &= ~_BV(PORTB5);
+// _delay_ms(500);
+// }
+
+
+
+
 
 #ifdef PHY_ATMEGARFR2
 
@@ -49,11 +68,17 @@
 #include "hal.h"
 #include "phy.h"
 #include "atmegarfr2.h"
+#include <avr/io.h>
 
 /*- Definitions ------------------------------------------------------------*/
 #define PHY_CRC_SIZE          2
 #define TRX_RPC_REG_VALUE     0xeb
 #define IRQ_CLEAR_VALUE       0xff
+
+#define PA_EN 27
+#define LNA_EN 26
+#define HGM 25
+
 
 /*- Types ------------------------------------------------------------------*/
 typedef enum
@@ -82,6 +107,7 @@ static uint8_t phyBand;
 *****************************************************************************/
 void PHY_Init(void)
 {
+
   TRXPR_REG_s.trxrst = 1;
 
   phyRxState = false;
@@ -89,6 +115,9 @@ void PHY_Init(void)
   phyState = PHY_STATE_IDLE;
 
   phyTrxSetState(TRX_CMD_TRX_OFF);
+
+  //digitalWrite(PA_EN,LOW);
+  //digitalWrite(LNA_EN,LOW);
 
   TRX_RPC_REG = TRX_RPC_REG_VALUE;
 
@@ -177,6 +206,8 @@ void PHY_Wakeup(void)
 void PHY_DataReq(uint8_t *data, uint8_t size)
 {
   phyTrxSetState(TRX_CMD_TX_ARET_ON);
+  //digitalWrite(PA_EN,HIGH);
+  //digitalWrite(LNA_EN,LOW);
 
   IRQ_STATUS_REG = IRQ_CLEAR_VALUE;
 
@@ -198,6 +229,8 @@ uint16_t PHY_RandomReq(void)
   TRX_RPC_REG = 0x00;
 
   phyTrxSetState(TRX_CMD_RX_ON);
+  //digitalWrite(PA_EN,LOW);
+  //digitalWrite(LNA_EN,HIGH);
 
   for (uint8_t i = 0; i < 16; i += 2)
   {
@@ -206,6 +239,8 @@ uint16_t PHY_RandomReq(void)
   }
 
   phyTrxSetState(TRX_CMD_TRX_OFF);
+  //digitalWrite(PA_EN,LOW);
+  //digitalWrite(LNA_EN,LOW);
 
   TRX_RPC_REG = TRX_RPC_REG_VALUE;
 
@@ -245,6 +280,8 @@ int8_t PHY_EdReq(void)
   int8_t ed;
 
   phyTrxSetState(TRX_CMD_RX_ON);
+  //digitalWrite(PA_EN,LOW);
+  //digitalWrite(LNA_EN,HIGH);
 
   IRQ_STATUS_REG_s.ccaEdDone = 1;
   PHY_ED_LEVEL_REG = 0;
@@ -280,6 +317,8 @@ static void phySetRxState(void)
 
   if (phyRxState)
     phyTrxSetState(TRX_CMD_RX_AACK_ON);
+    //digitalWrite(PA_EN,LOW);
+    //digitalWrite(LNA_EN,HIGH);
 }
 
 /*************************************************************************//**

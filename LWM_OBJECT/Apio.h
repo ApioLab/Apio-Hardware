@@ -37,7 +37,7 @@ class ApioClass {
  public:
    ApioClass();
    ~ApioClass();
-
+   uint16_t PanId;
    void setup(const char *sketchName, const char *sketchRevision, const uint16_t theAddress, const uint16_t thePanId);
    void loop();
 
@@ -52,6 +52,8 @@ class ApioClass {
 
    const char* getLastResetCause();
    void loadSettingsFromEeprom();
+   void eraseEeprom();
+   void saveEepromAddress(const uint16_t theAddress, const uint16_t thePanId, const uint8_t theChannel);
 
    void setHQToken(const char *token);
    void getHQToken(char *token);
@@ -88,7 +90,20 @@ class ApioClass {
 
    int contatoreInvii=0;
    int ack;
+   int flagSend = 0;
+   int sendInLoop = 0;
    String codaInvio;
+
+   //Fade Effect
+   int brightness=0;
+   int fadeAmount = 5;
+   int brightnessNeg;
+   int currMillis;
+   int preMillis;
+   int fadeOn;
+   int delFade = 5;
+
+   void fade(int del, int flagFade);
 
    void send(String message="");
 
@@ -99,6 +114,9 @@ class ApioClass {
    const char* getTxPowerDb();
    uint8_t getDataRate();
    const char* getDataRatekbps();
+
+
+   String appId;
 
    //Ex readFromWebServer
    char readFromSerial();
@@ -112,10 +130,11 @@ class ApioClass {
    int isDongle;
    //Ex content
 
-
    String deviceAddr;
    String property;
    String value;
+
+   int flagDeleted = 0;
 
 
    uint32_t now = 0; // set every loop
@@ -123,7 +142,7 @@ class ApioClass {
 
    int hi = 0;
 
-   int isVerbose = 1;
+   int isVerbose = 0;
 
    long previousMillis = 0;
    long interval = 1000;

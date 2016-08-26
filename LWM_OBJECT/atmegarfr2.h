@@ -495,7 +495,7 @@ struct __struct_TST_AGC_REG
 #define TST_SDM_REG     MMIO_REG(0x17D, uint8_t)
 #define TST_SDM_REG_s   MMIO_REG(0x17D, struct __struct_TST_SDM_REG)
 struct __struct_TST_SDM_REG
-{
+{  
   uint8_t         : 4;
   uint8_t txRxSel : 1; // Select Transmit/Receive Control Signal
   uint8_t txRx    : 1; // Switch between Transmit and Receive
@@ -504,7 +504,7 @@ struct __struct_TST_SDM_REG
 };
 
 // Frame buffer access macro
-#define TRX_FRAME_BUFFER(index) MMIO_REG(0x180 + (index), uint8_t)
+#define TRX_FRAME_BUFFER(index) MMIO_REG(0x180 + (index), uint8_t)    
 
 #define AES_CTRL_IM             2
 #define AES_CTRL_DIR            3
