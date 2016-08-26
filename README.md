@@ -3,6 +3,26 @@ Objects
 
 This repository contains libraries and all of configurations to start prototype objects in the APIO system
 
+Apio Dongle and General Arduino Library
+==========
+
+This repository contains the hardware folder for Arduino IDE, include coordinator sketch and include an example objects.
+
+# Build and Run
+
+### Prerequisites
+You need:
+* [Arduino IDE](https://www.arduino.cc/en/Main/Software)
+
+===========
+### Install
+
+* `cd /path/to/your/directory`
+* `git clone https://github.com/ApioLab/library-arduino.git`
+* `copy hardware folder in your Arduino folder(default in Documents folder)`
+* `Open Arduino IDE and Select Apio General in Boards menu`
+* `Create your first application with Apio SDK [see here](http://www.apio.cc/en/wiki#ch-1-4) `
+
 HOW APIO ENCODING WORKS
 =======================
 

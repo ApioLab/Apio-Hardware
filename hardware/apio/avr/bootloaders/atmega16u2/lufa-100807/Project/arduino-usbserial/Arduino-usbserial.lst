@@ -1,0 +1,1730 @@
+   1               		.file	"Arduino-usbserial.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               		.section	.text.RingBuffer_Insert,"ax",@progbits
+  12               	RingBuffer_Insert:
+  13               	.LFB71:
+  14               		.file 1 "Lib/LightweightRingBuff.h"
+   1:Lib/LightweightRingBuff.h **** /*
+   2:Lib/LightweightRingBuff.h ****              LUFA Library
+   3:Lib/LightweightRingBuff.h ****      Copyright (C) Dean Camera, 2010.
+   4:Lib/LightweightRingBuff.h ****               
+   5:Lib/LightweightRingBuff.h ****   dean [at] fourwalledcubicle [dot] com
+   6:Lib/LightweightRingBuff.h ****       www.fourwalledcubicle.com
+   7:Lib/LightweightRingBuff.h **** */
+   8:Lib/LightweightRingBuff.h **** 
+   9:Lib/LightweightRingBuff.h **** /*
+  10:Lib/LightweightRingBuff.h ****   Copyright 2010  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  11:Lib/LightweightRingBuff.h **** 
+  12:Lib/LightweightRingBuff.h ****   Permission to use, copy, modify, distribute, and sell this 
+  13:Lib/LightweightRingBuff.h ****   software and its documentation for any purpose is hereby granted
+  14:Lib/LightweightRingBuff.h ****   without fee, provided that the above copyright notice appear in 
+  15:Lib/LightweightRingBuff.h ****   all copies and that both that the copyright notice and this
+  16:Lib/LightweightRingBuff.h ****   permission notice and warranty disclaimer appear in supporting 
+  17:Lib/LightweightRingBuff.h ****   documentation, and that the name of the author not be used in 
+  18:Lib/LightweightRingBuff.h ****   advertising or publicity pertaining to distribution of the 
+  19:Lib/LightweightRingBuff.h ****   software without specific, written prior permission.
+  20:Lib/LightweightRingBuff.h **** 
+  21:Lib/LightweightRingBuff.h ****   The author disclaim all warranties with regard to this
+  22:Lib/LightweightRingBuff.h ****   software, including all implied warranties of merchantability
+  23:Lib/LightweightRingBuff.h ****   and fitness.  In no event shall the author be liable for any
+  24:Lib/LightweightRingBuff.h ****   special, indirect or consequential damages or any damages
+  25:Lib/LightweightRingBuff.h ****   whatsoever resulting from loss of use, data or profits, whether
+  26:Lib/LightweightRingBuff.h ****   in an action of contract, negligence or other tortious action,
+  27:Lib/LightweightRingBuff.h ****   arising out of or in connection with the use or performance of
+  28:Lib/LightweightRingBuff.h ****   this software.
+  29:Lib/LightweightRingBuff.h **** */
+  30:Lib/LightweightRingBuff.h **** 
+  31:Lib/LightweightRingBuff.h **** /** \file
+  32:Lib/LightweightRingBuff.h ****  *
+  33:Lib/LightweightRingBuff.h ****  *  Ultra lightweight ring buffer, for fast insertion/deletion.
+  34:Lib/LightweightRingBuff.h ****  */
+  35:Lib/LightweightRingBuff.h ****  
+  36:Lib/LightweightRingBuff.h **** #ifndef _ULW_RING_BUFF_H_
+  37:Lib/LightweightRingBuff.h **** #define _ULW_RING_BUFF_H_
+  38:Lib/LightweightRingBuff.h **** 
+  39:Lib/LightweightRingBuff.h **** 	/* Includes: */
+  40:Lib/LightweightRingBuff.h **** 		#include <util/atomic.h>
+  41:Lib/LightweightRingBuff.h **** 	
+  42:Lib/LightweightRingBuff.h **** 		#include <stdint.h>
+  43:Lib/LightweightRingBuff.h **** 		#include <stdbool.h>
+  44:Lib/LightweightRingBuff.h **** 
+  45:Lib/LightweightRingBuff.h **** 	/* Defines: */
+  46:Lib/LightweightRingBuff.h **** 		/** Size of each ring buffer, in data elements - must be between 1 and 255. */
+  47:Lib/LightweightRingBuff.h **** 		#define BUFFER_SIZE         128
+  48:Lib/LightweightRingBuff.h **** 		
+  49:Lib/LightweightRingBuff.h **** 		/** Maximum number of data elements to buffer before forcing a flush. 
+  50:Lib/LightweightRingBuff.h **** 		 *  Must be less than BUFFER_SIZE
+  51:Lib/LightweightRingBuff.h **** 		 */
+  52:Lib/LightweightRingBuff.h **** 		#define BUFFER_NEARLY_FULL	96
+  53:Lib/LightweightRingBuff.h **** 		
+  54:Lib/LightweightRingBuff.h **** 		/** Type of data to store into the buffer. */
+  55:Lib/LightweightRingBuff.h **** 		#define RingBuff_Data_t     uint8_t
+  56:Lib/LightweightRingBuff.h **** 
+  57:Lib/LightweightRingBuff.h **** 		/** Datatype which may be used to store the count of data stored in a buffer, retrieved
+  58:Lib/LightweightRingBuff.h **** 		 *  via a call to \ref RingBuffer_GetCount().
+  59:Lib/LightweightRingBuff.h **** 		 */
+  60:Lib/LightweightRingBuff.h **** 		#if (BUFFER_SIZE <= 0xFF)
+  61:Lib/LightweightRingBuff.h **** 			#define RingBuff_Count_t   uint8_t
+  62:Lib/LightweightRingBuff.h **** 		#else
+  63:Lib/LightweightRingBuff.h **** 			#define RingBuff_Count_t   uint16_t
+  64:Lib/LightweightRingBuff.h **** 		#endif
+  65:Lib/LightweightRingBuff.h **** 
+  66:Lib/LightweightRingBuff.h **** 	/* Type Defines: */
+  67:Lib/LightweightRingBuff.h **** 		/** Type define for a new ring buffer object. Buffers should be initialized via a call to
+  68:Lib/LightweightRingBuff.h **** 		 *  \ref RingBuffer_InitBuffer() before use.
+  69:Lib/LightweightRingBuff.h **** 		 */
+  70:Lib/LightweightRingBuff.h **** 		typedef struct
+  71:Lib/LightweightRingBuff.h **** 		{
+  72:Lib/LightweightRingBuff.h **** 			RingBuff_Data_t  Buffer[BUFFER_SIZE]; /**< Internal ring buffer data, referenced by the buffer p
+  73:Lib/LightweightRingBuff.h **** 			RingBuff_Data_t* In; /**< Current storage location in the circular buffer */
+  74:Lib/LightweightRingBuff.h **** 			RingBuff_Data_t* Out; /**< Current retrieval location in the circular buffer */
+  75:Lib/LightweightRingBuff.h **** 			RingBuff_Count_t Count;
+  76:Lib/LightweightRingBuff.h **** 		} RingBuff_t;
+  77:Lib/LightweightRingBuff.h **** 	
+  78:Lib/LightweightRingBuff.h **** 	/* Inline Functions: */
+  79:Lib/LightweightRingBuff.h **** 		/** Initializes a ring buffer ready for use. Buffers must be initialized via this function
+  80:Lib/LightweightRingBuff.h **** 		 *  before any operations are called upon them. Already initialized buffers may be reset
+  81:Lib/LightweightRingBuff.h **** 		 *  by re-initializing them using this function.
+  82:Lib/LightweightRingBuff.h **** 		 *
+  83:Lib/LightweightRingBuff.h **** 		 *  \param[out] Buffer  Pointer to a ring buffer structure to initialize
+  84:Lib/LightweightRingBuff.h **** 		 */
+  85:Lib/LightweightRingBuff.h **** 		static inline void RingBuffer_InitBuffer(RingBuff_t* const Buffer)
+  86:Lib/LightweightRingBuff.h **** 		{
+  87:Lib/LightweightRingBuff.h **** 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  88:Lib/LightweightRingBuff.h **** 			{
+  89:Lib/LightweightRingBuff.h **** 				Buffer->In  = Buffer->Buffer;
+  90:Lib/LightweightRingBuff.h **** 				Buffer->Out = Buffer->Buffer;
+  91:Lib/LightweightRingBuff.h **** 			}
+  92:Lib/LightweightRingBuff.h **** 		}
+  93:Lib/LightweightRingBuff.h **** 		
+  94:Lib/LightweightRingBuff.h **** 		/** Retrieves the minimum number of bytes stored in a particular buffer. This value is computed
+  95:Lib/LightweightRingBuff.h **** 		 *  by entering an atomic lock on the buffer while the IN and OUT locations are fetched, so that
+  96:Lib/LightweightRingBuff.h **** 		 *  the buffer cannot be modified while the computation takes place. This value should be cached
+  97:Lib/LightweightRingBuff.h **** 		 *  when reading out the contents of the buffer, so that as small a time as possible is spent
+  98:Lib/LightweightRingBuff.h **** 		 *  in an atomic lock.
+  99:Lib/LightweightRingBuff.h **** 		 *
+ 100:Lib/LightweightRingBuff.h **** 		 *  \note The value returned by this function is guaranteed to only be the minimum number of byte
+ 101:Lib/LightweightRingBuff.h **** 		 *        stored in the given buffer; this value may change as other threads write new data and s
+ 102:Lib/LightweightRingBuff.h **** 		 *        the returned number should be used only to determine how many successive reads may safe
+ 103:Lib/LightweightRingBuff.h **** 		 *        be performed on the buffer.
+ 104:Lib/LightweightRingBuff.h **** 		 *
+ 105:Lib/LightweightRingBuff.h **** 		 *  \param[in] Buffer  Pointer to a ring buffer structure whose count is to be computed
+ 106:Lib/LightweightRingBuff.h **** 		 */
+ 107:Lib/LightweightRingBuff.h **** 		static inline RingBuff_Count_t RingBuffer_GetCount(RingBuff_t* const Buffer)
+ 108:Lib/LightweightRingBuff.h **** 		{
+ 109:Lib/LightweightRingBuff.h **** 			RingBuff_Count_t Count;
+ 110:Lib/LightweightRingBuff.h **** 			
+ 111:Lib/LightweightRingBuff.h **** 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+ 112:Lib/LightweightRingBuff.h **** 			{
+ 113:Lib/LightweightRingBuff.h **** 				Count = Buffer->Count;
+ 114:Lib/LightweightRingBuff.h **** 			}
+ 115:Lib/LightweightRingBuff.h **** 			
+ 116:Lib/LightweightRingBuff.h **** 			return Count;
+ 117:Lib/LightweightRingBuff.h **** 		}
+ 118:Lib/LightweightRingBuff.h **** 		
+ 119:Lib/LightweightRingBuff.h **** 		/** Atomically determines if the specified ring buffer contains any free space. This should
+ 120:Lib/LightweightRingBuff.h **** 		 *  be tested before storing data to the buffer, to ensure that no data is lost due to a
+ 121:Lib/LightweightRingBuff.h **** 		 *  buffer overrun.
+ 122:Lib/LightweightRingBuff.h **** 		 *
+ 123:Lib/LightweightRingBuff.h **** 		 *  \param[in,out] Buffer  Pointer to a ring buffer structure to insert into
+ 124:Lib/LightweightRingBuff.h **** 		 *
+ 125:Lib/LightweightRingBuff.h **** 		 *  \return Boolean true if the buffer contains no free space, false otherwise
+ 126:Lib/LightweightRingBuff.h **** 		 */		 
+ 127:Lib/LightweightRingBuff.h **** 		static inline bool RingBuffer_IsFull(RingBuff_t* const Buffer)
+ 128:Lib/LightweightRingBuff.h **** 		{
+ 129:Lib/LightweightRingBuff.h **** 			return (RingBuffer_GetCount(Buffer) == BUFFER_SIZE);
+ 130:Lib/LightweightRingBuff.h **** 		}
+ 131:Lib/LightweightRingBuff.h **** 
+ 132:Lib/LightweightRingBuff.h **** 		/** Atomically determines if the specified ring buffer contains any data. This should
+ 133:Lib/LightweightRingBuff.h **** 		 *  be tested before removing data from the buffer, to ensure that the buffer does not
+ 134:Lib/LightweightRingBuff.h **** 		 *  underflow.
+ 135:Lib/LightweightRingBuff.h **** 		 *
+ 136:Lib/LightweightRingBuff.h **** 		 *  If the data is to be removed in a loop, store the total number of bytes stored in the
+ 137:Lib/LightweightRingBuff.h **** 		 *  buffer (via a call to the \ref RingBuffer_GetCount() function) in a temporary variable
+ 138:Lib/LightweightRingBuff.h **** 		 *  to reduce the time spent in atomicity locks.
+ 139:Lib/LightweightRingBuff.h **** 		 *
+ 140:Lib/LightweightRingBuff.h **** 		 *  \param[in,out] Buffer  Pointer to a ring buffer structure to insert into
+ 141:Lib/LightweightRingBuff.h **** 		 *
+ 142:Lib/LightweightRingBuff.h **** 		 *  \return Boolean true if the buffer contains no free space, false otherwise
+ 143:Lib/LightweightRingBuff.h **** 		 */		 
+ 144:Lib/LightweightRingBuff.h **** 		static inline bool RingBuffer_IsEmpty(RingBuff_t* const Buffer)
+ 145:Lib/LightweightRingBuff.h **** 		{
+ 146:Lib/LightweightRingBuff.h **** 			return (RingBuffer_GetCount(Buffer) == 0);
+ 147:Lib/LightweightRingBuff.h **** 		}
+ 148:Lib/LightweightRingBuff.h **** 
+ 149:Lib/LightweightRingBuff.h **** 		/** Inserts an element into the ring buffer.
+ 150:Lib/LightweightRingBuff.h **** 		 *
+ 151:Lib/LightweightRingBuff.h **** 		 *  \note Only one execution thread (main program thread or an ISR) may insert into a single buff
+ 152:Lib/LightweightRingBuff.h **** 		 *        otherwise data corruption may occur. Insertion and removal may occur from different exe
+ 153:Lib/LightweightRingBuff.h **** 		 *        threads.
+ 154:Lib/LightweightRingBuff.h **** 		 *
+ 155:Lib/LightweightRingBuff.h **** 		 *  \param[in,out] Buffer  Pointer to a ring buffer structure to insert into
+ 156:Lib/LightweightRingBuff.h **** 		 *  \param[in]     Data    Data element to insert into the buffer
+ 157:Lib/LightweightRingBuff.h **** 		 */
+ 158:Lib/LightweightRingBuff.h **** 		static inline void RingBuffer_Insert(RingBuff_t* const Buffer,
+ 159:Lib/LightweightRingBuff.h **** 		                                     const RingBuff_Data_t Data)
+ 160:Lib/LightweightRingBuff.h **** 		{
+  15               		.loc 1 160 0
+  16               		.cfi_startproc
+  17               	.LVL0:
+  18               	/* prologue: function */
+  19               	/* frame size = 0 */
+  20               	/* stack size = 0 */
+  21               	.L__stack_usage = 0
+ 161:Lib/LightweightRingBuff.h **** 			*Buffer->In = Data;
+  22               		.loc 1 161 0
+  23 0000 FC01      		movw r30,r24
+  24 0002 E058      		subi r30,-128
+  25 0004 FF4F      		sbci r31,-1
+  26 0006 A081      		ld r26,Z
+  27 0008 B181      		ldd r27,Z+1
+  28 000a 6C93      		st X,r22
+ 162:Lib/LightweightRingBuff.h **** 			
+ 163:Lib/LightweightRingBuff.h **** 			if (++Buffer->In == &Buffer->Buffer[BUFFER_SIZE])
+  29               		.loc 1 163 0
+  30 000c A081      		ld r26,Z
+  31 000e B181      		ldd r27,Z+1
+  32 0010 9D01      		movw r18,r26
+  33 0012 2F5F      		subi r18,-1
+  34 0014 3F4F      		sbci r19,-1
+  35 0016 3183      		std Z+1,r19
+  36 0018 2083      		st Z,r18
+  37 001a 2E17      		cp r18,r30
+  38 001c 3F07      		cpc r19,r31
+  39 001e 01F4      		brne .L2
+ 164:Lib/LightweightRingBuff.h **** 			  Buffer->In = Buffer->Buffer;
+  40               		.loc 1 164 0
+  41 0020 1296      		adiw r26,1+1
+  42 0022 9C93      		st X,r25
+  43 0024 8E93      		st -X,r24
+  44 0026 1197      		sbiw r26,1
+  45               	.L2:
+  46               	.LBB31:
+ 165:Lib/LightweightRingBuff.h **** 
+ 166:Lib/LightweightRingBuff.h **** 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+  47               		.loc 1 166 0
+  48 0028 2FB7      		in r18,__SREG__
+  49               	.LVL1:
+  50               	.LBB32:
+  51               	.LBB33:
+  52               		.file 2 "/usr/lib/avr/include/util/atomic.h"
+   1:/usr/lib/avr/include/util/atomic.h **** /* Copyright (c) 2007 Dean Camera
+   2:/usr/lib/avr/include/util/atomic.h ****    All rights reserved.
+   3:/usr/lib/avr/include/util/atomic.h **** 
+   4:/usr/lib/avr/include/util/atomic.h ****    Redistribution and use in source and binary forms, with or without
+   5:/usr/lib/avr/include/util/atomic.h ****    modification, are permitted provided that the following conditions are met:
+   6:/usr/lib/avr/include/util/atomic.h **** 
+   7:/usr/lib/avr/include/util/atomic.h ****    * Redistributions of source code must retain the above copyright
+   8:/usr/lib/avr/include/util/atomic.h ****      notice, this list of conditions and the following disclaimer.
+   9:/usr/lib/avr/include/util/atomic.h **** 
+  10:/usr/lib/avr/include/util/atomic.h ****    * Redistributions in binary form must reproduce the above copyright
+  11:/usr/lib/avr/include/util/atomic.h ****      notice, this list of conditions and the following disclaimer in
+  12:/usr/lib/avr/include/util/atomic.h ****      the documentation and/or other materials provided with the
+  13:/usr/lib/avr/include/util/atomic.h ****      distribution.
+  14:/usr/lib/avr/include/util/atomic.h **** 
+  15:/usr/lib/avr/include/util/atomic.h ****    * Neither the name of the copyright holders nor the names of
+  16:/usr/lib/avr/include/util/atomic.h ****      contributors may be used to endorse or promote products derived
+  17:/usr/lib/avr/include/util/atomic.h ****      from this software without specific prior written permission.
+  18:/usr/lib/avr/include/util/atomic.h **** 
+  19:/usr/lib/avr/include/util/atomic.h ****   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  20:/usr/lib/avr/include/util/atomic.h ****   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  21:/usr/lib/avr/include/util/atomic.h ****   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  22:/usr/lib/avr/include/util/atomic.h ****   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  23:/usr/lib/avr/include/util/atomic.h ****   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  24:/usr/lib/avr/include/util/atomic.h ****   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  25:/usr/lib/avr/include/util/atomic.h ****   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  26:/usr/lib/avr/include/util/atomic.h ****   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  27:/usr/lib/avr/include/util/atomic.h ****   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  28:/usr/lib/avr/include/util/atomic.h ****   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  29:/usr/lib/avr/include/util/atomic.h ****   POSSIBILITY OF SUCH DAMAGE.
+  30:/usr/lib/avr/include/util/atomic.h **** */
+  31:/usr/lib/avr/include/util/atomic.h **** 
+  32:/usr/lib/avr/include/util/atomic.h **** /* $Id: atomic.h 2158 2010-06-10 15:48:28Z joerg_wunsch $ */
+  33:/usr/lib/avr/include/util/atomic.h **** 
+  34:/usr/lib/avr/include/util/atomic.h **** #ifndef _UTIL_ATOMIC_H_
+  35:/usr/lib/avr/include/util/atomic.h **** #define _UTIL_ATOMIC_H_ 1
+  36:/usr/lib/avr/include/util/atomic.h **** 
+  37:/usr/lib/avr/include/util/atomic.h **** #include <avr/io.h>
+  38:/usr/lib/avr/include/util/atomic.h **** #include <avr/interrupt.h>
+  39:/usr/lib/avr/include/util/atomic.h **** 
+  40:/usr/lib/avr/include/util/atomic.h **** #if !defined(__DOXYGEN__)
+  41:/usr/lib/avr/include/util/atomic.h **** /* Internal helper functions. */
+  42:/usr/lib/avr/include/util/atomic.h **** static __inline__ uint8_t __iSeiRetVal(void)
+  43:/usr/lib/avr/include/util/atomic.h **** {
+  44:/usr/lib/avr/include/util/atomic.h ****     sei();
+  45:/usr/lib/avr/include/util/atomic.h ****     return 1;
+  46:/usr/lib/avr/include/util/atomic.h **** }
+  47:/usr/lib/avr/include/util/atomic.h **** 
+  48:/usr/lib/avr/include/util/atomic.h **** static __inline__ uint8_t __iCliRetVal(void)
+  49:/usr/lib/avr/include/util/atomic.h **** {
+  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+  53               		.loc 2 50 0
+  54               	/* #APP */
+  55               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+  56 002a F894      		cli
+  57               	 ;  0 "" 2
+  58               	.LVL2:
+  59               	/* #NOAPP */
+  60               	.LBE33:
+  61               	.LBE32:
+ 167:Lib/LightweightRingBuff.h **** 			{
+ 168:Lib/LightweightRingBuff.h **** 				Buffer->Count++;
+  62               		.loc 1 168 0
+  63 002c FC01      		movw r30,r24
+  64 002e EC57      		subi r30,124
+  65 0030 FF4F      		sbci r31,-1
+  66 0032 8081      		ld r24,Z
+  67               	.LVL3:
+  68 0034 8F5F      		subi r24,lo8(-(1))
+  69 0036 8083      		st Z,r24
+  70               	.LVL4:
+  71               	.LBB34:
+  72               	.LBB35:
+  51:/usr/lib/avr/include/util/atomic.h ****     return 1;
+  52:/usr/lib/avr/include/util/atomic.h **** }
+  53:/usr/lib/avr/include/util/atomic.h **** 
+  54:/usr/lib/avr/include/util/atomic.h **** static __inline__ void __iSeiParam(const uint8_t *__s)
+  55:/usr/lib/avr/include/util/atomic.h **** {
+  56:/usr/lib/avr/include/util/atomic.h ****     sei();
+  57:/usr/lib/avr/include/util/atomic.h ****     __asm__ volatile ("" ::: "memory");
+  58:/usr/lib/avr/include/util/atomic.h ****     (void)__s;
+  59:/usr/lib/avr/include/util/atomic.h **** }
+  60:/usr/lib/avr/include/util/atomic.h **** 
+  61:/usr/lib/avr/include/util/atomic.h **** static __inline__ void __iCliParam(const uint8_t *__s)
+  62:/usr/lib/avr/include/util/atomic.h **** {
+  63:/usr/lib/avr/include/util/atomic.h ****     cli();
+  64:/usr/lib/avr/include/util/atomic.h ****     __asm__ volatile ("" ::: "memory");
+  65:/usr/lib/avr/include/util/atomic.h ****     (void)__s;
+  66:/usr/lib/avr/include/util/atomic.h **** }
+  67:/usr/lib/avr/include/util/atomic.h **** 
+  68:/usr/lib/avr/include/util/atomic.h **** static __inline__ void __iRestore(const  uint8_t *__s)
+  69:/usr/lib/avr/include/util/atomic.h **** {
+  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+  73               		.loc 2 70 0
+  74 0038 2FBF      		out __SREG__,r18
+  71:/usr/lib/avr/include/util/atomic.h ****     __asm__ volatile ("" ::: "memory");
+  75               		.loc 2 71 0
+  76 003a 0895      		ret
+  77               	.LBE35:
+  78               	.LBE34:
+  79               	.LBE31:
+  80               		.cfi_endproc
+  81               	.LFE71:
+  83               		.section	.text.RingBuffer_Remove,"ax",@progbits
+  85               	RingBuffer_Remove:
+  86               	.LFB72:
+ 169:Lib/LightweightRingBuff.h **** 			}
+ 170:Lib/LightweightRingBuff.h **** 		}
+ 171:Lib/LightweightRingBuff.h **** 
+ 172:Lib/LightweightRingBuff.h **** 		/** Removes an element from the ring buffer.
+ 173:Lib/LightweightRingBuff.h **** 		 *
+ 174:Lib/LightweightRingBuff.h **** 		 *  \note Only one execution thread (main program thread or an ISR) may remove from a single buff
+ 175:Lib/LightweightRingBuff.h **** 		 *        otherwise data corruption may occur. Insertion and removal may occur from different exe
+ 176:Lib/LightweightRingBuff.h **** 		 *        threads.
+ 177:Lib/LightweightRingBuff.h **** 		 *
+ 178:Lib/LightweightRingBuff.h **** 		 *  \param[in,out] Buffer  Pointer to a ring buffer structure to retrieve from
+ 179:Lib/LightweightRingBuff.h **** 		 *
+ 180:Lib/LightweightRingBuff.h **** 		 *  \return Next data element stored in the buffer
+ 181:Lib/LightweightRingBuff.h **** 		 */
+ 182:Lib/LightweightRingBuff.h **** 		static inline RingBuff_Data_t RingBuffer_Remove(RingBuff_t* const Buffer)
+ 183:Lib/LightweightRingBuff.h **** 		{
+  87               		.loc 1 183 0
+  88               		.cfi_startproc
+  89               	.LVL5:
+  90               	/* prologue: function */
+  91               	/* frame size = 0 */
+  92               	/* stack size = 0 */
+  93               	.L__stack_usage = 0
+ 184:Lib/LightweightRingBuff.h **** 			RingBuff_Data_t Data = *Buffer->Out;
+  94               		.loc 1 184 0
+  95 0000 DC01      		movw r26,r24
+  96 0002 AE57      		subi r26,126
+  97 0004 BF4F      		sbci r27,-1
+  98 0006 ED91      		ld r30,X+
+  99 0008 FC91      		ld r31,X
+ 100 000a 1197      		sbiw r26,1
+ 101 000c 4191      		ld r20,Z+
+ 102               	.LVL6:
+ 185:Lib/LightweightRingBuff.h **** 			
+ 186:Lib/LightweightRingBuff.h **** 			if (++Buffer->Out == &Buffer->Buffer[BUFFER_SIZE])
+ 103               		.loc 1 186 0
+ 104 000e 1196      		adiw r26,1
+ 105 0010 FC93      		st X,r31
+ 106 0012 EE93      		st -X,r30
+ 107 0014 9C01      		movw r18,r24
+ 108 0016 2058      		subi r18,-128
+ 109 0018 3F4F      		sbci r19,-1
+ 110 001a E217      		cp r30,r18
+ 111 001c F307      		cpc r31,r19
+ 112 001e 01F4      		brne .L5
+ 187:Lib/LightweightRingBuff.h **** 			  Buffer->Out = Buffer->Buffer;
+ 113               		.loc 1 187 0
+ 114 0020 8D93      		st X+,r24
+ 115 0022 9C93      		st X,r25
+ 116               	.L5:
+ 117               	.LBB36:
+ 188:Lib/LightweightRingBuff.h **** 
+ 189:Lib/LightweightRingBuff.h **** 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+ 118               		.loc 1 189 0
+ 119 0024 2FB7      		in r18,__SREG__
+ 120               	.LVL7:
+ 121               	.LBB37:
+ 122               	.LBB38:
+  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+ 123               		.loc 2 50 0
+ 124               	/* #APP */
+ 125               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 126 0026 F894      		cli
+ 127               	 ;  0 "" 2
+ 128               	.LVL8:
+ 129               	/* #NOAPP */
+ 130               	.LBE38:
+ 131               	.LBE37:
+ 190:Lib/LightweightRingBuff.h **** 			{
+ 191:Lib/LightweightRingBuff.h **** 				Buffer->Count--;
+ 132               		.loc 1 191 0
+ 133 0028 FC01      		movw r30,r24
+ 134 002a EC57      		subi r30,124
+ 135 002c FF4F      		sbci r31,-1
+ 136 002e 9081      		ld r25,Z
+ 137 0030 9150      		subi r25,lo8(-(-1))
+ 138 0032 9083      		st Z,r25
+ 139               	.LVL9:
+ 140               	.LBB39:
+ 141               	.LBB40:
+  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+ 142               		.loc 2 70 0
+ 143 0034 2FBF      		out __SREG__,r18
+ 144               		.loc 2 71 0
+ 145               	.LBE40:
+ 146               	.LBE39:
+ 147               	.LBE36:
+ 192:Lib/LightweightRingBuff.h **** 			}
+ 193:Lib/LightweightRingBuff.h **** 			
+ 194:Lib/LightweightRingBuff.h **** 			return Data;
+ 195:Lib/LightweightRingBuff.h **** 		}
+ 148               		.loc 1 195 0
+ 149 0036 842F      		mov r24,r20
+ 150               	.LVL10:
+ 151 0038 0895      		ret
+ 152               		.cfi_endproc
+ 153               	.LFE72:
+ 155               		.section	.text.SetupHardware,"ax",@progbits
+ 156               	.global	SetupHardware
+ 158               	SetupHardware:
+ 159               	.LFB86:
+ 160               		.file 3 "Arduino-usbserial.c"
+   1:Arduino-usbserial.c **** /*
+   2:Arduino-usbserial.c ****              LUFA Library
+   3:Arduino-usbserial.c ****      Copyright (C) Dean Camera, 2010.
+   4:Arduino-usbserial.c ****               
+   5:Arduino-usbserial.c ****   dean [at] fourwalledcubicle [dot] com
+   6:Arduino-usbserial.c ****       www.fourwalledcubicle.com
+   7:Arduino-usbserial.c **** */
+   8:Arduino-usbserial.c **** 
+   9:Arduino-usbserial.c **** /*
+  10:Arduino-usbserial.c ****   Copyright 2010  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  11:Arduino-usbserial.c **** 
+  12:Arduino-usbserial.c ****   Permission to use, copy, modify, distribute, and sell this 
+  13:Arduino-usbserial.c ****   software and its documentation for any purpose is hereby granted
+  14:Arduino-usbserial.c ****   without fee, provided that the above copyright notice appear in 
+  15:Arduino-usbserial.c ****   all copies and that both that the copyright notice and this
+  16:Arduino-usbserial.c ****   permission notice and warranty disclaimer appear in supporting 
+  17:Arduino-usbserial.c ****   documentation, and that the name of the author not be used in 
+  18:Arduino-usbserial.c ****   advertising or publicity pertaining to distribution of the 
+  19:Arduino-usbserial.c ****   software without specific, written prior permission.
+  20:Arduino-usbserial.c **** 
+  21:Arduino-usbserial.c ****   The author disclaim all warranties with regard to this
+  22:Arduino-usbserial.c ****   software, including all implied warranties of merchantability
+  23:Arduino-usbserial.c ****   and fitness.  In no event shall the author be liable for any
+  24:Arduino-usbserial.c ****   special, indirect or consequential damages or any damages
+  25:Arduino-usbserial.c ****   whatsoever resulting from loss of use, data or profits, whether
+  26:Arduino-usbserial.c ****   in an action of contract, negligence or other tortious action,
+  27:Arduino-usbserial.c ****   arising out of or in connection with the use or performance of
+  28:Arduino-usbserial.c ****   this software.
+  29:Arduino-usbserial.c **** */
+  30:Arduino-usbserial.c **** 
+  31:Arduino-usbserial.c **** /** \file
+  32:Arduino-usbserial.c ****  *
+  33:Arduino-usbserial.c ****  *  Main source file for the Arduino-usbserial project. This file contains the main tasks of
+  34:Arduino-usbserial.c ****  *  the project and is responsible for the initial application hardware configuration.
+  35:Arduino-usbserial.c ****  */
+  36:Arduino-usbserial.c **** 
+  37:Arduino-usbserial.c **** #include "Arduino-usbserial.h"
+  38:Arduino-usbserial.c **** 
+  39:Arduino-usbserial.c **** /** Circular buffer to hold data from the host before it is sent to the device via the serial port.
+  40:Arduino-usbserial.c **** RingBuff_t USBtoUSART_Buffer;
+  41:Arduino-usbserial.c **** 
+  42:Arduino-usbserial.c **** /** Circular buffer to hold data from the serial port before it is sent to the host. */
+  43:Arduino-usbserial.c **** RingBuff_t USARTtoUSB_Buffer;
+  44:Arduino-usbserial.c **** 
+  45:Arduino-usbserial.c **** /** Pulse generation counters to keep track of the number of milliseconds remaining for each pulse 
+  46:Arduino-usbserial.c **** volatile struct
+  47:Arduino-usbserial.c **** {
+  48:Arduino-usbserial.c **** 	uint8_t TxLEDPulse; /**< Milliseconds remaining for data Tx LED pulse */
+  49:Arduino-usbserial.c **** 	uint8_t RxLEDPulse; /**< Milliseconds remaining for data Rx LED pulse */
+  50:Arduino-usbserial.c **** 	uint8_t PingPongLEDPulse; /**< Milliseconds remaining for enumeration Tx/Rx ping-pong LED pulse */
+  51:Arduino-usbserial.c **** } PulseMSRemaining;
+  52:Arduino-usbserial.c **** 
+  53:Arduino-usbserial.c **** /** LUFA CDC Class driver interface configuration and state information. This structure is
+  54:Arduino-usbserial.c ****  *  passed to all CDC Class driver functions, so that multiple instances of the same class
+  55:Arduino-usbserial.c ****  *  within a device can be differentiated from one another.
+  56:Arduino-usbserial.c ****  */
+  57:Arduino-usbserial.c **** USB_ClassInfo_CDC_Device_t VirtualSerial_CDC_Interface =
+  58:Arduino-usbserial.c **** 	{
+  59:Arduino-usbserial.c **** 		.Config = 
+  60:Arduino-usbserial.c **** 			{
+  61:Arduino-usbserial.c **** 				.ControlInterfaceNumber         = 0,
+  62:Arduino-usbserial.c **** 
+  63:Arduino-usbserial.c **** 				.DataINEndpointNumber           = CDC_TX_EPNUM,
+  64:Arduino-usbserial.c **** 				.DataINEndpointSize             = CDC_TXRX_EPSIZE,
+  65:Arduino-usbserial.c **** 				.DataINEndpointDoubleBank       = false,
+  66:Arduino-usbserial.c **** 
+  67:Arduino-usbserial.c **** 				.DataOUTEndpointNumber          = CDC_RX_EPNUM,
+  68:Arduino-usbserial.c **** 				.DataOUTEndpointSize            = CDC_TXRX_EPSIZE,
+  69:Arduino-usbserial.c **** 				.DataOUTEndpointDoubleBank      = false,
+  70:Arduino-usbserial.c **** 
+  71:Arduino-usbserial.c **** 				.NotificationEndpointNumber     = CDC_NOTIFICATION_EPNUM,
+  72:Arduino-usbserial.c **** 				.NotificationEndpointSize       = CDC_NOTIFICATION_EPSIZE,
+  73:Arduino-usbserial.c **** 				.NotificationEndpointDoubleBank = false,
+  74:Arduino-usbserial.c **** 			},
+  75:Arduino-usbserial.c **** 	};
+  76:Arduino-usbserial.c **** 
+  77:Arduino-usbserial.c **** /** Main program entry point. This routine contains the overall program flow, including initial
+  78:Arduino-usbserial.c ****  *  setup of all components and the main program loop.
+  79:Arduino-usbserial.c ****  */
+  80:Arduino-usbserial.c **** int main(void)
+  81:Arduino-usbserial.c **** {
+  82:Arduino-usbserial.c **** 	SetupHardware();
+  83:Arduino-usbserial.c **** 	
+  84:Arduino-usbserial.c **** 	RingBuffer_InitBuffer(&USBtoUSART_Buffer);
+  85:Arduino-usbserial.c **** 	RingBuffer_InitBuffer(&USARTtoUSB_Buffer);
+  86:Arduino-usbserial.c **** 
+  87:Arduino-usbserial.c **** 	sei();
+  88:Arduino-usbserial.c **** 
+  89:Arduino-usbserial.c **** 	for (;;)
+  90:Arduino-usbserial.c **** 	{
+  91:Arduino-usbserial.c **** 		/* Only try to read in bytes from the CDC interface if the transmit buffer is not full */
+  92:Arduino-usbserial.c **** 		if (!(RingBuffer_IsFull(&USBtoUSART_Buffer)))
+  93:Arduino-usbserial.c **** 		{
+  94:Arduino-usbserial.c **** 			int16_t ReceivedByte = CDC_Device_ReceiveByte(&VirtualSerial_CDC_Interface);
+  95:Arduino-usbserial.c **** 
+  96:Arduino-usbserial.c **** 			/* Read bytes from the USB OUT endpoint into the USART transmit buffer */
+  97:Arduino-usbserial.c **** 			if (!(ReceivedByte < 0))
+  98:Arduino-usbserial.c **** 			  RingBuffer_Insert(&USBtoUSART_Buffer, ReceivedByte);
+  99:Arduino-usbserial.c **** 		}
+ 100:Arduino-usbserial.c **** 		
+ 101:Arduino-usbserial.c **** 		/* Check if the UART receive buffer flush timer has expired or the buffer is nearly full */
+ 102:Arduino-usbserial.c **** 		RingBuff_Count_t BufferCount = RingBuffer_GetCount(&USARTtoUSB_Buffer);
+ 103:Arduino-usbserial.c **** 		if ((TIFR0 & (1 << TOV0)) || (BufferCount > BUFFER_NEARLY_FULL))
+ 104:Arduino-usbserial.c **** 		{
+ 105:Arduino-usbserial.c **** 			TIFR0 |= (1 << TOV0);
+ 106:Arduino-usbserial.c **** 
+ 107:Arduino-usbserial.c **** 			if (USARTtoUSB_Buffer.Count) {
+ 108:Arduino-usbserial.c **** 				LEDs_TurnOnLEDs(LEDMASK_TX);
+ 109:Arduino-usbserial.c **** 				PulseMSRemaining.TxLEDPulse = TX_RX_LED_PULSE_MS;
+ 110:Arduino-usbserial.c **** 			}
+ 111:Arduino-usbserial.c **** 
+ 112:Arduino-usbserial.c **** 			/* Read bytes from the USART receive buffer into the USB IN endpoint */
+ 113:Arduino-usbserial.c **** 			while (BufferCount--)
+ 114:Arduino-usbserial.c **** 			  CDC_Device_SendByte(&VirtualSerial_CDC_Interface, RingBuffer_Remove(&USARTtoUSB_Buffer));
+ 115:Arduino-usbserial.c **** 			  
+ 116:Arduino-usbserial.c **** 			/* Turn off TX LED(s) once the TX pulse period has elapsed */
+ 117:Arduino-usbserial.c **** 			if (PulseMSRemaining.TxLEDPulse && !(--PulseMSRemaining.TxLEDPulse))
+ 118:Arduino-usbserial.c **** 			  LEDs_TurnOffLEDs(LEDMASK_TX);
+ 119:Arduino-usbserial.c **** 
+ 120:Arduino-usbserial.c **** 			/* Turn off RX LED(s) once the RX pulse period has elapsed */
+ 121:Arduino-usbserial.c **** 			if (PulseMSRemaining.RxLEDPulse && !(--PulseMSRemaining.RxLEDPulse))
+ 122:Arduino-usbserial.c **** 			  LEDs_TurnOffLEDs(LEDMASK_RX);
+ 123:Arduino-usbserial.c **** 		}
+ 124:Arduino-usbserial.c **** 		
+ 125:Arduino-usbserial.c **** 		/* Load the next byte from the USART transmit buffer into the USART */
+ 126:Arduino-usbserial.c **** 		if (!(RingBuffer_IsEmpty(&USBtoUSART_Buffer))) {
+ 127:Arduino-usbserial.c **** 		  Serial_TxByte(RingBuffer_Remove(&USBtoUSART_Buffer));
+ 128:Arduino-usbserial.c **** 		  	
+ 129:Arduino-usbserial.c **** 		  	LEDs_TurnOnLEDs(LEDMASK_RX);
+ 130:Arduino-usbserial.c **** 			PulseMSRemaining.RxLEDPulse = TX_RX_LED_PULSE_MS;
+ 131:Arduino-usbserial.c **** 		}
+ 132:Arduino-usbserial.c **** 		
+ 133:Arduino-usbserial.c **** 		CDC_Device_USBTask(&VirtualSerial_CDC_Interface);
+ 134:Arduino-usbserial.c **** 		USB_USBTask();
+ 135:Arduino-usbserial.c **** 	}
+ 136:Arduino-usbserial.c **** }
+ 137:Arduino-usbserial.c **** 
+ 138:Arduino-usbserial.c **** /** Configures the board hardware and chip peripherals for the demo's functionality. */
+ 139:Arduino-usbserial.c **** void SetupHardware(void)
+ 140:Arduino-usbserial.c **** {
+ 161               		.loc 3 140 0
+ 162               		.cfi_startproc
+ 163               	/* prologue: function */
+ 164               	/* frame size = 0 */
+ 165               	/* stack size = 0 */
+ 166               	.L__stack_usage = 0
+ 141:Arduino-usbserial.c **** 	/* Disable watchdog if enabled by bootloader/fuses */
+ 142:Arduino-usbserial.c **** 	MCUSR &= ~(1 << WDRF);
+ 167               		.loc 3 142 0
+ 168 0000 84B7      		in r24,0x34
+ 169 0002 877F      		andi r24,lo8(-9)
+ 170 0004 84BF      		out 0x34,r24
+ 143:Arduino-usbserial.c **** 	wdt_disable();
+ 171               		.loc 3 143 0
+ 172 0006 88E1      		ldi r24,lo8(24)
+ 173               	/* #APP */
+ 174               	 ;  143 "Arduino-usbserial.c" 1
+ 175 0008 0FB6      		in __tmp_reg__, __SREG__
+ 176 000a F894      		cli
+ 177 000c 8093 6000 		sts 96, r24
+ 178 0010 1092 6000 		sts 96, __zero_reg__
+ 179 0014 0FBE      		out __SREG__,__tmp_reg__
+ 180               		
+ 181               	 ;  0 "" 2
+ 182               	.LVL11:
+ 183               	/* #NOAPP */
+ 184               	.LBB45:
+ 185               	.LBB46:
+ 186               		.file 4 "../../LUFA/Drivers/Peripheral/Serial.h"
+   1:../../LUFA/Drivers/Peripheral/Serial.h **** /*
+   2:../../LUFA/Drivers/Peripheral/Serial.h ****              LUFA Library
+   3:../../LUFA/Drivers/Peripheral/Serial.h ****      Copyright (C) Dean Camera, 2010.
+   4:../../LUFA/Drivers/Peripheral/Serial.h ****               
+   5:../../LUFA/Drivers/Peripheral/Serial.h ****   dean [at] fourwalledcubicle [dot] com
+   6:../../LUFA/Drivers/Peripheral/Serial.h ****       www.fourwalledcubicle.com
+   7:../../LUFA/Drivers/Peripheral/Serial.h **** */
+   8:../../LUFA/Drivers/Peripheral/Serial.h **** 
+   9:../../LUFA/Drivers/Peripheral/Serial.h **** /*
+  10:../../LUFA/Drivers/Peripheral/Serial.h ****   Copyright 2010  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  11:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  12:../../LUFA/Drivers/Peripheral/Serial.h ****   Permission to use, copy, modify, distribute, and sell this 
+  13:../../LUFA/Drivers/Peripheral/Serial.h ****   software and its documentation for any purpose is hereby granted
+  14:../../LUFA/Drivers/Peripheral/Serial.h ****   without fee, provided that the above copyright notice appear in 
+  15:../../LUFA/Drivers/Peripheral/Serial.h ****   all copies and that both that the copyright notice and this
+  16:../../LUFA/Drivers/Peripheral/Serial.h ****   permission notice and warranty disclaimer appear in supporting 
+  17:../../LUFA/Drivers/Peripheral/Serial.h ****   documentation, and that the name of the author not be used in 
+  18:../../LUFA/Drivers/Peripheral/Serial.h ****   advertising or publicity pertaining to distribution of the 
+  19:../../LUFA/Drivers/Peripheral/Serial.h ****   software without specific, written prior permission.
+  20:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  21:../../LUFA/Drivers/Peripheral/Serial.h ****   The author disclaim all warranties with regard to this
+  22:../../LUFA/Drivers/Peripheral/Serial.h ****   software, including all implied warranties of merchantability
+  23:../../LUFA/Drivers/Peripheral/Serial.h ****   and fitness.  In no event shall the author be liable for any
+  24:../../LUFA/Drivers/Peripheral/Serial.h ****   special, indirect or consequential damages or any damages
+  25:../../LUFA/Drivers/Peripheral/Serial.h ****   whatsoever resulting from loss of use, data or profits, whether
+  26:../../LUFA/Drivers/Peripheral/Serial.h ****   in an action of contract, negligence or other tortious action,
+  27:../../LUFA/Drivers/Peripheral/Serial.h ****   arising out of or in connection with the use or performance of
+  28:../../LUFA/Drivers/Peripheral/Serial.h ****   this software.
+  29:../../LUFA/Drivers/Peripheral/Serial.h **** */
+  30:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  31:../../LUFA/Drivers/Peripheral/Serial.h **** /** \file
+  32:../../LUFA/Drivers/Peripheral/Serial.h ****  *  \brief Master include file for the USART peripheral driver.
+  33:../../LUFA/Drivers/Peripheral/Serial.h ****  *
+  34:../../LUFA/Drivers/Peripheral/Serial.h ****  *  Driver for the USART subsystem on supported USB AVRs.
+  35:../../LUFA/Drivers/Peripheral/Serial.h ****  */
+  36:../../LUFA/Drivers/Peripheral/Serial.h ****  
+  37:../../LUFA/Drivers/Peripheral/Serial.h **** /** \ingroup Group_PeripheralDrivers
+  38:../../LUFA/Drivers/Peripheral/Serial.h ****  *  @defgroup Group_Serial Serial USART Driver - LUFA/Drivers/Peripheral/Serial.h
+  39:../../LUFA/Drivers/Peripheral/Serial.h ****  *
+  40:../../LUFA/Drivers/Peripheral/Serial.h ****  *  \section Sec_Dependencies Module Source Dependencies
+  41:../../LUFA/Drivers/Peripheral/Serial.h ****  *  The following files must be built with any user project that uses this module:
+  42:../../LUFA/Drivers/Peripheral/Serial.h ****  *    - LUFA/Drivers/Peripheral/Serial.c <i>(Makefile source module name: LUFA_SRC_SERIAL)</i>
+  43:../../LUFA/Drivers/Peripheral/Serial.h ****  *
+  44:../../LUFA/Drivers/Peripheral/Serial.h ****  *  \section Module Description
+  45:../../LUFA/Drivers/Peripheral/Serial.h ****  *  Hardware serial USART driver. This module provides an easy to use driver for
+  46:../../LUFA/Drivers/Peripheral/Serial.h ****  *  the setup of and transfer of data over the AVR's USART port.
+  47:../../LUFA/Drivers/Peripheral/Serial.h ****  *
+  48:../../LUFA/Drivers/Peripheral/Serial.h ****  *  @{
+  49:../../LUFA/Drivers/Peripheral/Serial.h ****  */
+  50:../../LUFA/Drivers/Peripheral/Serial.h ****  
+  51:../../LUFA/Drivers/Peripheral/Serial.h **** #ifndef __SERIAL_H__
+  52:../../LUFA/Drivers/Peripheral/Serial.h **** #define __SERIAL_H__
+  53:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  54:../../LUFA/Drivers/Peripheral/Serial.h **** 	/* Includes: */
+  55:../../LUFA/Drivers/Peripheral/Serial.h **** 		#include <avr/io.h>
+  56:../../LUFA/Drivers/Peripheral/Serial.h **** 		#include <avr/pgmspace.h>
+  57:../../LUFA/Drivers/Peripheral/Serial.h **** 		#include <stdbool.h>
+  58:../../LUFA/Drivers/Peripheral/Serial.h **** 		
+  59:../../LUFA/Drivers/Peripheral/Serial.h **** 		#include "../../Common/Common.h"
+  60:../../LUFA/Drivers/Peripheral/Serial.h **** 		#include "../Misc/TerminalCodes.h"
+  61:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  62:../../LUFA/Drivers/Peripheral/Serial.h **** 	/* Enable C linkage for C++ Compilers: */
+  63:../../LUFA/Drivers/Peripheral/Serial.h **** 		#if defined(__cplusplus)
+  64:../../LUFA/Drivers/Peripheral/Serial.h **** 			extern "C" {
+  65:../../LUFA/Drivers/Peripheral/Serial.h **** 		#endif
+  66:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  67:../../LUFA/Drivers/Peripheral/Serial.h **** 	/* Public Interface - May be used in end-application: */
+  68:../../LUFA/Drivers/Peripheral/Serial.h **** 		/* Macros: */
+  69:../../LUFA/Drivers/Peripheral/Serial.h **** 			/** Macro for calculating the baud value from a given baud rate when the U2X (double speed) bit 
+  70:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *  not set.
+  71:../../LUFA/Drivers/Peripheral/Serial.h **** 			 */
+  72:../../LUFA/Drivers/Peripheral/Serial.h **** 			#define SERIAL_UBBRVAL(baud)    ((((F_CPU / 16) + (baud / 2)) / (baud)) - 1)
+  73:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  74:../../LUFA/Drivers/Peripheral/Serial.h **** 			/** Macro for calculating the baud value from a given baud rate when the U2X (double speed) bit 
+  75:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *  set.
+  76:../../LUFA/Drivers/Peripheral/Serial.h **** 			 */
+  77:../../LUFA/Drivers/Peripheral/Serial.h **** 			#define SERIAL_2X_UBBRVAL(baud) ((((F_CPU / 8) + (baud / 2)) / (baud)) - 1)
+  78:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  79:../../LUFA/Drivers/Peripheral/Serial.h **** 		/* Function Prototypes: */
+  80:../../LUFA/Drivers/Peripheral/Serial.h **** 			/** Transmits a given string located in program space (FLASH) through the USART.
+  81:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *
+  82:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *  \param[in] FlashStringPtr  Pointer to a string located in program space.
+  83:../../LUFA/Drivers/Peripheral/Serial.h **** 			 */
+  84:../../LUFA/Drivers/Peripheral/Serial.h **** 			void Serial_TxString_P(const char* FlashStringPtr) ATTR_NON_NULL_PTR_ARG(1);
+  85:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  86:../../LUFA/Drivers/Peripheral/Serial.h **** 			/** Transmits a given string located in SRAM memory through the USART.
+  87:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *
+  88:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *  \param[in] StringPtr  Pointer to a string located in SRAM space.
+  89:../../LUFA/Drivers/Peripheral/Serial.h **** 			 */
+  90:../../LUFA/Drivers/Peripheral/Serial.h **** 			void Serial_TxString(const char* StringPtr) ATTR_NON_NULL_PTR_ARG(1);
+  91:../../LUFA/Drivers/Peripheral/Serial.h **** 
+  92:../../LUFA/Drivers/Peripheral/Serial.h **** 		/* Inline Functions: */
+  93:../../LUFA/Drivers/Peripheral/Serial.h **** 			/** Initializes the USART, ready for serial data transmission and reception. This initializes th
+  94:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *  standard 8-bit, no parity, 1 stop bit settings suitable for most applications.
+  95:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *
+  96:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *  \param[in] BaudRate     Serial baud rate, in bits per second.
+  97:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *  \param[in] DoubleSpeed  Enables double speed mode when set, halving the sample time to doubl
+  98:../../LUFA/Drivers/Peripheral/Serial.h **** 			 */
+  99:../../LUFA/Drivers/Peripheral/Serial.h **** 			static inline void Serial_Init(const uint32_t BaudRate,
+ 100:../../LUFA/Drivers/Peripheral/Serial.h **** 			                               const bool DoubleSpeed)
+ 101:../../LUFA/Drivers/Peripheral/Serial.h **** 			{
+ 102:../../LUFA/Drivers/Peripheral/Serial.h **** 				UBRR1  = (DoubleSpeed ? SERIAL_2X_UBBRVAL(BaudRate) : SERIAL_UBBRVAL(BaudRate));
+ 187               		.loc 4 102 0
+ 188 0016 87E6      		ldi r24,lo8(103)
+ 189 0018 90E0      		ldi r25,0
+ 190 001a 9093 CD00 		sts 204+1,r25
+ 191 001e 8093 CC00 		sts 204,r24
+ 103:../../LUFA/Drivers/Peripheral/Serial.h **** 
+ 104:../../LUFA/Drivers/Peripheral/Serial.h **** 				UCSR1C = ((1 << UCSZ11) | (1 << UCSZ10));
+ 192               		.loc 4 104 0
+ 193 0022 86E0      		ldi r24,lo8(6)
+ 194 0024 8093 CA00 		sts 202,r24
+ 105:../../LUFA/Drivers/Peripheral/Serial.h **** 				UCSR1A = (DoubleSpeed ? (1 << U2X1) : 0);
+ 195               		.loc 4 105 0
+ 196 0028 1092 C800 		sts 200,__zero_reg__
+ 106:../../LUFA/Drivers/Peripheral/Serial.h **** 				UCSR1B = ((1 << TXEN1)  | (1 << RXEN1));
+ 197               		.loc 4 106 0
+ 198 002c 88E1      		ldi r24,lo8(24)
+ 199 002e 8093 C900 		sts 201,r24
+ 107:../../LUFA/Drivers/Peripheral/Serial.h **** 				
+ 108:../../LUFA/Drivers/Peripheral/Serial.h **** 				DDRD  |= (1 << 3);
+ 200               		.loc 4 108 0
+ 201 0032 539A      		sbi 0xa,3
+ 109:../../LUFA/Drivers/Peripheral/Serial.h **** 				PORTD |= (1 << 2);
+ 202               		.loc 4 109 0
+ 203 0034 5A9A      		sbi 0xb,2
+ 204               	.LBE46:
+ 205               	.LBE45:
+ 206               	.LBB47:
+ 207               	.LBB48:
+ 208               		.file 5 "./Board/LEDs.h"
+   1:./Board/LEDs.h **** /*
+   2:./Board/LEDs.h ****              LUFA Library
+   3:./Board/LEDs.h ****      Copyright (C) Dean Camera, 2010.
+   4:./Board/LEDs.h ****               
+   5:./Board/LEDs.h ****   dean [at] fourwalledcubicle [dot] com
+   6:./Board/LEDs.h ****       www.fourwalledcubicle.com
+   7:./Board/LEDs.h **** */
+   8:./Board/LEDs.h **** 
+   9:./Board/LEDs.h **** /*
+  10:./Board/LEDs.h ****   Copyright 2010  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  11:./Board/LEDs.h **** 
+  12:./Board/LEDs.h ****   Permission to use, copy, modify, distribute, and sell this 
+  13:./Board/LEDs.h ****   software and its documentation for any purpose is hereby granted
+  14:./Board/LEDs.h ****   without fee, provided that the above copyright notice appear in 
+  15:./Board/LEDs.h ****   all copies and that both that the copyright notice and this
+  16:./Board/LEDs.h ****   permission notice and warranty disclaimer appear in supporting 
+  17:./Board/LEDs.h ****   documentation, and that the name of the author not be used in 
+  18:./Board/LEDs.h ****   advertising or publicity pertaining to distribution of the 
+  19:./Board/LEDs.h ****   software without specific, written prior permission.
+  20:./Board/LEDs.h **** 
+  21:./Board/LEDs.h ****   The author disclaim all warranties with regard to this
+  22:./Board/LEDs.h ****   software, including all implied warranties of merchantability
+  23:./Board/LEDs.h ****   and fitness.  In no event shall the author be liable for any
+  24:./Board/LEDs.h ****   special, indirect or consequential damages or any damages
+  25:./Board/LEDs.h ****   whatsoever resulting from loss of use, data or profits, whether
+  26:./Board/LEDs.h ****   in an action of contract, negligence or other tortious action,
+  27:./Board/LEDs.h ****   arising out of or in connection with the use or performance of
+  28:./Board/LEDs.h ****   this software.
+  29:./Board/LEDs.h **** */
+  30:./Board/LEDs.h **** 
+  31:./Board/LEDs.h **** /*
+  32:./Board/LEDs.h ****    Board LEDs driver for the Benito board, from www.dorkbotpdx.org.
+  33:./Board/LEDs.h **** */
+  34:./Board/LEDs.h **** 
+  35:./Board/LEDs.h **** #ifndef __LEDS_ARDUINOUNO_H__
+  36:./Board/LEDs.h **** #define __LEDS_ARDUINOUNO_H__
+  37:./Board/LEDs.h **** 
+  38:./Board/LEDs.h **** 	/* Includes: */
+  39:./Board/LEDs.h **** 		#include <avr/io.h>
+  40:./Board/LEDs.h **** 
+  41:./Board/LEDs.h **** /* Enable C linkage for C++ Compilers: */
+  42:./Board/LEDs.h **** 		#if defined(__cplusplus)
+  43:./Board/LEDs.h **** 			extern "C" {
+  44:./Board/LEDs.h **** 		#endif
+  45:./Board/LEDs.h **** 
+  46:./Board/LEDs.h **** 	/* Preprocessor Checks: */
+  47:./Board/LEDs.h **** 		#if !defined(INCLUDE_FROM_LEDS_H)
+  48:./Board/LEDs.h **** 			#error Do not include this file directly. Include LUFA/Drivers/Board/LEDS.h instead.
+  49:./Board/LEDs.h **** 		#endif
+  50:./Board/LEDs.h **** 
+  51:./Board/LEDs.h **** 	/* Public Interface - May be used in end-application: */
+  52:./Board/LEDs.h **** 		/* Macros: */
+  53:./Board/LEDs.h **** 			/** LED mask for the first LED on the board. */
+  54:./Board/LEDs.h **** 			#define LEDS_LED1        (1 << 5)
+  55:./Board/LEDs.h **** 
+  56:./Board/LEDs.h **** 			/** LED mask for the second LED on the board. */
+  57:./Board/LEDs.h **** 			#define LEDS_LED2        (1 << 6)
+  58:./Board/LEDs.h **** 
+  59:./Board/LEDs.h **** 			/** LED mask for all the LEDs on the board. */
+  60:./Board/LEDs.h **** 			#define LEDS_ALL_LEDS    (LEDS_LED1 | LEDS_LED2)
+  61:./Board/LEDs.h **** 
+  62:./Board/LEDs.h **** 			/** LED mask for the none of the board LEDs */
+  63:./Board/LEDs.h **** 			#define LEDS_NO_LEDS     0
+  64:./Board/LEDs.h **** 
+  65:./Board/LEDs.h **** 		/* Inline Functions: */
+  66:./Board/LEDs.h **** 		#if !defined(__DOXYGEN__)
+  67:./Board/LEDs.h **** 			static inline void LEDs_Init(void)
+  68:./Board/LEDs.h **** 			{
+  69:./Board/LEDs.h **** 				DDRD  |= LEDS_ALL_LEDS;
+ 209               		.loc 5 69 0
+ 210 0036 8AB1      		in r24,0xa
+ 211 0038 8066      		ori r24,lo8(96)
+ 212 003a 8AB9      		out 0xa,r24
+  70:./Board/LEDs.h **** 				PORTD |= LEDS_ALL_LEDS;
+ 213               		.loc 5 70 0
+ 214 003c 8BB1      		in r24,0xb
+ 215 003e 8066      		ori r24,lo8(96)
+ 216 0040 8BB9      		out 0xb,r24
+ 217               	.LBE48:
+ 218               	.LBE47:
+ 144:Arduino-usbserial.c **** 
+ 145:Arduino-usbserial.c **** 	/* Hardware Initialization */
+ 146:Arduino-usbserial.c **** 	Serial_Init(9600, false);
+ 147:Arduino-usbserial.c **** 	LEDs_Init();
+ 148:Arduino-usbserial.c **** 	USB_Init();
+ 219               		.loc 3 148 0
+ 220 0042 0E94 0000 		call USB_Init
+ 221               	.LVL12:
+ 149:Arduino-usbserial.c **** 	
+ 150:Arduino-usbserial.c **** 	/* Set PD4 to Hi-z/input to enable charge controller */
+ 151:Arduino-usbserial.c ****   DDRD & ~(0x01 << 4);
+ 222               		.loc 3 151 0
+ 223 0046 8AB1      		in r24,0xa
+ 152:Arduino-usbserial.c ****   PORTD & ~(0x01 << 4);
+ 224               		.loc 3 152 0
+ 225 0048 8BB1      		in r24,0xb
+ 153:Arduino-usbserial.c ****   
+ 154:Arduino-usbserial.c **** 	/* Start the flush timer so that overflows occur rapidly to push received bytes to the USB interfa
+ 155:Arduino-usbserial.c **** 	TCCR0B = (1 << CS02);
+ 226               		.loc 3 155 0
+ 227 004a 84E0      		ldi r24,lo8(4)
+ 228 004c 85BD      		out 0x25,r24
+ 156:Arduino-usbserial.c **** 	
+ 157:Arduino-usbserial.c **** 	/* Pull target /RESET line high */
+ 158:Arduino-usbserial.c **** 	AVR_RESET_LINE_PORT |= AVR_RESET_LINE_MASK;
+ 229               		.loc 3 158 0
+ 230 004e 5F9A      		sbi 0xb,7
+ 159:Arduino-usbserial.c **** 	AVR_RESET_LINE_DDR  |= AVR_RESET_LINE_MASK;
+ 231               		.loc 3 159 0
+ 232 0050 579A      		sbi 0xa,7
+ 233 0052 0895      		ret
+ 234               		.cfi_endproc
+ 235               	.LFE86:
+ 237               		.section	.text.startup.main,"ax",@progbits
+ 238               	.global	main
+ 240               	main:
+ 241               	.LFB85:
+  81:Arduino-usbserial.c **** {
+ 242               		.loc 3 81 0
+ 243               		.cfi_startproc
+ 244               	/* prologue: function */
+ 245               	/* frame size = 0 */
+ 246               	/* stack size = 0 */
+ 247               	.L__stack_usage = 0
+  82:Arduino-usbserial.c **** 	SetupHardware();
+ 248               		.loc 3 82 0
+ 249 0000 0E94 0000 		call SetupHardware
+ 250               	.LVL13:
+ 251               	.LBB100:
+ 252               	.LBB101:
+  87:Lib/LightweightRingBuff.h **** 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+ 253               		.loc 1 87 0
+ 254 0004 2FB7      		in r18,__SREG__
+ 255               	.LVL14:
+ 256               	.LBB102:
+ 257               	.LBB103:
+  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+ 258               		.loc 2 50 0
+ 259               	/* #APP */
+ 260               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 261 0006 F894      		cli
+ 262               	 ;  0 "" 2
+ 263               	.LVL15:
+ 264               	/* #NOAPP */
+ 265               	.LBE103:
+ 266               	.LBE102:
+  89:Lib/LightweightRingBuff.h **** 				Buffer->In  = Buffer->Buffer;
+ 267               		.loc 1 89 0
+ 268 0008 80E0      		ldi r24,lo8(USBtoUSART_Buffer)
+ 269 000a 90E0      		ldi r25,hi8(USBtoUSART_Buffer)
+ 270 000c 9093 0000 		sts USBtoUSART_Buffer+128+1,r25
+ 271 0010 8093 0000 		sts USBtoUSART_Buffer+128,r24
+  90:Lib/LightweightRingBuff.h **** 				Buffer->Out = Buffer->Buffer;
+ 272               		.loc 1 90 0
+ 273 0014 9093 0000 		sts USBtoUSART_Buffer+130+1,r25
+ 274 0018 8093 0000 		sts USBtoUSART_Buffer+130,r24
+ 275               	.LVL16:
+ 276               	.LBB104:
+ 277               	.LBB105:
+  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+ 278               		.loc 2 70 0
+ 279 001c 2FBF      		out __SREG__,r18
+ 280               		.loc 2 71 0
+ 281               	.LVL17:
+ 282               	.LBE105:
+ 283               	.LBE104:
+ 284               	.LBE101:
+ 285               	.LBE100:
+ 286               	.LBB106:
+ 287               	.LBB107:
+  87:Lib/LightweightRingBuff.h **** 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+ 288               		.loc 1 87 0
+ 289 001e 2FB7      		in r18,__SREG__
+ 290               	.LVL18:
+ 291               	.LBB108:
+ 292               	.LBB109:
+  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+ 293               		.loc 2 50 0
+ 294               	/* #APP */
+ 295               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 296 0020 F894      		cli
+ 297               	 ;  0 "" 2
+ 298               	.LVL19:
+ 299               	/* #NOAPP */
+ 300               	.LBE109:
+ 301               	.LBE108:
+  89:Lib/LightweightRingBuff.h **** 				Buffer->In  = Buffer->Buffer;
+ 302               		.loc 1 89 0
+ 303 0022 80E0      		ldi r24,lo8(USARTtoUSB_Buffer)
+ 304 0024 90E0      		ldi r25,hi8(USARTtoUSB_Buffer)
+ 305 0026 9093 0000 		sts USARTtoUSB_Buffer+128+1,r25
+ 306 002a 8093 0000 		sts USARTtoUSB_Buffer+128,r24
+  90:Lib/LightweightRingBuff.h **** 				Buffer->Out = Buffer->Buffer;
+ 307               		.loc 1 90 0
+ 308 002e 9093 0000 		sts USARTtoUSB_Buffer+130+1,r25
+ 309 0032 8093 0000 		sts USARTtoUSB_Buffer+130,r24
+ 310               	.LVL20:
+ 311               	.LBB110:
+ 312               	.LBB111:
+  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+ 313               		.loc 2 70 0
+ 314 0036 2FBF      		out __SREG__,r18
+ 315               	.LVL21:
+ 316               		.loc 2 71 0
+ 317               	.LBE111:
+ 318               	.LBE110:
+ 319               	.LBE107:
+ 320               	.LBE106:
+  87:Arduino-usbserial.c **** 	sei();
+ 321               		.loc 3 87 0
+ 322               	/* #APP */
+ 323               	 ;  87 "Arduino-usbserial.c" 1
+ 324 0038 7894      		sei
+ 325               	 ;  0 "" 2
+ 326               	/* #NOAPP */
+ 327               	.LBB112:
+ 109:Arduino-usbserial.c **** 				PulseMSRemaining.TxLEDPulse = TX_RX_LED_PULSE_MS;
+ 328               		.loc 3 109 0
+ 329 003a D3E0      		ldi r29,lo8(3)
+ 330               	.LVL22:
+ 331               	.L23:
+ 332               	.LBB113:
+ 333               	.LBB114:
+ 334               	.LBB115:
+ 335               	.LBB116:
+ 111:Lib/LightweightRingBuff.h **** 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+ 336               		.loc 1 111 0
+ 337 003c 9FB7      		in r25,__SREG__
+ 338               	.LVL23:
+ 339               	.LBB117:
+ 340               	.LBB118:
+  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+ 341               		.loc 2 50 0
+ 342               	/* #APP */
+ 343               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 344 003e F894      		cli
+ 345               	 ;  0 "" 2
+ 346               	.LVL24:
+ 347               	/* #NOAPP */
+ 348               	.LBE118:
+ 349               	.LBE117:
+ 113:Lib/LightweightRingBuff.h **** 				Count = Buffer->Count;
+ 350               		.loc 1 113 0
+ 351 0040 8091 0000 		lds r24,USBtoUSART_Buffer+132
+ 352               	.LVL25:
+ 353               	.LBB119:
+ 354               	.LBB120:
+  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+ 355               		.loc 2 70 0
+ 356 0044 9FBF      		out __SREG__,r25
+ 357               		.loc 2 71 0
+ 358               	.LBE120:
+ 359               	.LBE119:
+ 360               	.LBE116:
+ 361               	.LBE115:
+ 362               	.LBE114:
+ 363               	.LBE113:
+  92:Arduino-usbserial.c **** 		if (!(RingBuffer_IsFull(&USBtoUSART_Buffer)))
+ 364               		.loc 3 92 0
+ 365 0046 8038      		cpi r24,lo8(-128)
+ 366 0048 01F0      		breq .L9
+ 367               	.LBB121:
+  94:Arduino-usbserial.c **** 			int16_t ReceivedByte = CDC_Device_ReceiveByte(&VirtualSerial_CDC_Interface);
+ 368               		.loc 3 94 0
+ 369 004a 80E0      		ldi r24,lo8(VirtualSerial_CDC_Interface)
+ 370 004c 90E0      		ldi r25,hi8(VirtualSerial_CDC_Interface)
+ 371               	.LVL26:
+ 372 004e 0E94 0000 		call CDC_Device_ReceiveByte
+ 373               	.LVL27:
+  97:Arduino-usbserial.c **** 			if (!(ReceivedByte < 0))
+ 374               		.loc 3 97 0
+ 375 0052 97FD      		sbrc r25,7
+ 376 0054 00C0      		rjmp .L9
+  98:Arduino-usbserial.c **** 			  RingBuffer_Insert(&USBtoUSART_Buffer, ReceivedByte);
+ 377               		.loc 3 98 0
+ 378 0056 682F      		mov r22,r24
+ 379 0058 80E0      		ldi r24,lo8(USBtoUSART_Buffer)
+ 380 005a 90E0      		ldi r25,hi8(USBtoUSART_Buffer)
+ 381               	.LVL28:
+ 382 005c 0E94 0000 		call RingBuffer_Insert
+ 383               	.LVL29:
+ 384               	.L9:
+ 385               	.LBE121:
+ 386               	.LBB122:
+ 387               	.LBB123:
+ 388               	.LBB124:
+ 111:Lib/LightweightRingBuff.h **** 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+ 389               		.loc 1 111 0
+ 390 0060 8FB7      		in r24,__SREG__
+ 391               	.LVL30:
+ 392               	.LBB125:
+ 393               	.LBB126:
+  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+ 394               		.loc 2 50 0
+ 395               	/* #APP */
+ 396               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 397 0062 F894      		cli
+ 398               	 ;  0 "" 2
+ 399               	.LVL31:
+ 400               	/* #NOAPP */
+ 401               	.LBE126:
+ 402               	.LBE125:
+ 113:Lib/LightweightRingBuff.h **** 				Count = Buffer->Count;
+ 403               		.loc 1 113 0
+ 404 0064 C091 0000 		lds r28,USARTtoUSB_Buffer+132
+ 405               	.LVL32:
+ 406               	.LBB127:
+ 407               	.LBB128:
+  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+ 408               		.loc 2 70 0
+ 409 0068 8FBF      		out __SREG__,r24
+ 410               		.loc 2 71 0
+ 411               	.LBE128:
+ 412               	.LBE127:
+ 413               	.LBE124:
+ 414               	.LBE123:
+ 415               	.LBE122:
+ 103:Arduino-usbserial.c **** 		if ((TIFR0 & (1 << TOV0)) || (BufferCount > BUFFER_NEARLY_FULL))
+ 416               		.loc 3 103 0
+ 417 006a A899      		sbic 0x15,0
+ 418 006c 00C0      		rjmp .L11
+ 103:Arduino-usbserial.c **** 		if ((TIFR0 & (1 << TOV0)) || (BufferCount > BUFFER_NEARLY_FULL))
+ 419               		.loc 3 103 0 is_stmt 0 discriminator 1
+ 420 006e C136      		cpi r28,lo8(97)
+ 421 0070 00F0      		brlo .L12
+ 422               	.L11:
+ 105:Arduino-usbserial.c **** 			TIFR0 |= (1 << TOV0);
+ 423               		.loc 3 105 0 is_stmt 1
+ 424 0072 A89A      		sbi 0x15,0
+ 107:Arduino-usbserial.c **** 			if (USARTtoUSB_Buffer.Count) {
+ 425               		.loc 3 107 0
+ 426 0074 8091 0000 		lds r24,USARTtoUSB_Buffer+132
+ 427               	.LVL33:
+ 428 0078 8823      		tst r24
+ 429 007a 01F0      		breq .L14
+ 430               	.LVL34:
+ 431               	.LBB129:
+ 432               	.LBB130:
+  71:./Board/LEDs.h **** 			}
+  72:./Board/LEDs.h **** 			
+  73:./Board/LEDs.h **** 			static inline void LEDs_TurnOnLEDs(const uint8_t LEDMask)
+  74:./Board/LEDs.h **** 			{
+  75:./Board/LEDs.h **** 				PORTD &= ~LEDMask;
+ 433               		.loc 5 75 0
+ 434 007c 5D98      		cbi 0xb,5
+ 435               	.LBE130:
+ 436               	.LBE129:
+ 109:Arduino-usbserial.c **** 				PulseMSRemaining.TxLEDPulse = TX_RX_LED_PULSE_MS;
+ 437               		.loc 3 109 0
+ 438 007e D093 0000 		sts PulseMSRemaining,r29
+ 439               	.LVL35:
+ 440               	.L14:
+ 113:Arduino-usbserial.c **** 			while (BufferCount--)
+ 441               		.loc 3 113 0 discriminator 1
+ 442 0082 CC23      		tst r28
+ 443 0084 01F0      		breq .L33
+ 114:Arduino-usbserial.c **** 			  CDC_Device_SendByte(&VirtualSerial_CDC_Interface, RingBuffer_Remove(&USARTtoUSB_Buffer));
+ 444               		.loc 3 114 0
+ 445 0086 80E0      		ldi r24,lo8(USARTtoUSB_Buffer)
+ 446 0088 90E0      		ldi r25,hi8(USARTtoUSB_Buffer)
+ 447 008a 0E94 0000 		call RingBuffer_Remove
+ 448               	.LVL36:
+ 449 008e 682F      		mov r22,r24
+ 450 0090 80E0      		ldi r24,lo8(VirtualSerial_CDC_Interface)
+ 451 0092 90E0      		ldi r25,hi8(VirtualSerial_CDC_Interface)
+ 452 0094 0E94 0000 		call CDC_Device_SendByte
+ 453               	.LVL37:
+ 454 0098 C150      		subi r28,lo8(-(-1))
+ 455               	.LVL38:
+ 456 009a 00C0      		rjmp .L14
+ 457               	.LVL39:
+ 458               	.L33:
+ 117:Arduino-usbserial.c **** 			if (PulseMSRemaining.TxLEDPulse && !(--PulseMSRemaining.TxLEDPulse))
+ 459               		.loc 3 117 0
+ 460 009c 8091 0000 		lds r24,PulseMSRemaining
+ 461 00a0 8823      		tst r24
+ 462 00a2 01F0      		breq .L17
+ 117:Arduino-usbserial.c **** 			if (PulseMSRemaining.TxLEDPulse && !(--PulseMSRemaining.TxLEDPulse))
+ 463               		.loc 3 117 0 is_stmt 0 discriminator 1
+ 464 00a4 8091 0000 		lds r24,PulseMSRemaining
+ 465 00a8 8150      		subi r24,lo8(-(-1))
+ 466 00aa 8093 0000 		sts PulseMSRemaining,r24
+ 467 00ae 8111      		cpse r24,__zero_reg__
+ 468 00b0 00C0      		rjmp .L17
+ 469               	.LVL40:
+ 470               	.LBB131:
+ 471               	.LBB132:
+  76:./Board/LEDs.h **** 			}
+  77:./Board/LEDs.h **** 
+  78:./Board/LEDs.h **** 			static inline void LEDs_TurnOffLEDs(const uint8_t LEDMask)
+  79:./Board/LEDs.h **** 			{
+  80:./Board/LEDs.h **** 				PORTD |= LEDMask;
+ 472               		.loc 5 80 0 is_stmt 1
+ 473 00b2 5D9A      		sbi 0xb,5
+ 474               	.LVL41:
+ 475               	.L17:
+ 476               	.LBE132:
+ 477               	.LBE131:
+ 121:Arduino-usbserial.c **** 			if (PulseMSRemaining.RxLEDPulse && !(--PulseMSRemaining.RxLEDPulse))
+ 478               		.loc 3 121 0
+ 479 00b4 8091 0000 		lds r24,PulseMSRemaining+1
+ 480 00b8 8823      		tst r24
+ 481 00ba 01F0      		breq .L12
+ 121:Arduino-usbserial.c **** 			if (PulseMSRemaining.RxLEDPulse && !(--PulseMSRemaining.RxLEDPulse))
+ 482               		.loc 3 121 0 is_stmt 0 discriminator 1
+ 483 00bc 8091 0000 		lds r24,PulseMSRemaining+1
+ 484 00c0 8150      		subi r24,lo8(-(-1))
+ 485 00c2 8093 0000 		sts PulseMSRemaining+1,r24
+ 486 00c6 8111      		cpse r24,__zero_reg__
+ 487 00c8 00C0      		rjmp .L12
+ 488               	.LVL42:
+ 489               	.LBB133:
+ 490               	.LBB134:
+ 491               		.loc 5 80 0 is_stmt 1
+ 492 00ca 5E9A      		sbi 0xb,6
+ 493               	.LVL43:
+ 494               	.L12:
+ 495               	.LBE134:
+ 496               	.LBE133:
+ 497               	.LBB135:
+ 498               	.LBB136:
+ 499               	.LBB137:
+ 500               	.LBB138:
+ 111:Lib/LightweightRingBuff.h **** 			ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+ 501               		.loc 1 111 0
+ 502 00cc 9FB7      		in r25,__SREG__
+ 503               	.LVL44:
+ 504               	.LBB139:
+ 505               	.LBB140:
+  50:/usr/lib/avr/include/util/atomic.h ****     cli();
+ 506               		.loc 2 50 0
+ 507               	/* #APP */
+ 508               	 ;  50 "/usr/lib/avr/include/util/atomic.h" 1
+ 509 00ce F894      		cli
+ 510               	 ;  0 "" 2
+ 511               	.LVL45:
+ 512               	/* #NOAPP */
+ 513               	.LBE140:
+ 514               	.LBE139:
+ 113:Lib/LightweightRingBuff.h **** 				Count = Buffer->Count;
+ 515               		.loc 1 113 0
+ 516 00d0 8091 0000 		lds r24,USBtoUSART_Buffer+132
+ 517               	.LVL46:
+ 518               	.LBB141:
+ 519               	.LBB142:
+  70:/usr/lib/avr/include/util/atomic.h ****     SREG = *__s;
+ 520               		.loc 2 70 0
+ 521 00d4 9FBF      		out __SREG__,r25
+ 522               		.loc 2 71 0
+ 523               	.LBE142:
+ 524               	.LBE141:
+ 525               	.LBE138:
+ 526               	.LBE137:
+ 527               	.LBE136:
+ 528               	.LBE135:
+ 126:Arduino-usbserial.c **** 		if (!(RingBuffer_IsEmpty(&USBtoUSART_Buffer))) {
+ 529               		.loc 3 126 0
+ 530 00d6 8823      		tst r24
+ 531 00d8 01F0      		breq .L20
+ 127:Arduino-usbserial.c **** 		  Serial_TxByte(RingBuffer_Remove(&USBtoUSART_Buffer));
+ 532               		.loc 3 127 0
+ 533 00da 80E0      		ldi r24,lo8(USBtoUSART_Buffer)
+ 534 00dc 90E0      		ldi r25,hi8(USBtoUSART_Buffer)
+ 535               	.LVL47:
+ 536 00de 0E94 0000 		call RingBuffer_Remove
+ 537               	.LVL48:
+ 538               	.L22:
+ 539               	.LBB143:
+ 540               	.LBB144:
+ 110:../../LUFA/Drivers/Peripheral/Serial.h **** 			}
+ 111:../../LUFA/Drivers/Peripheral/Serial.h **** 
+ 112:../../LUFA/Drivers/Peripheral/Serial.h **** 			/** Turns off the USART driver, disabling and returning used hardware to their default configura
+ 113:../../LUFA/Drivers/Peripheral/Serial.h **** 			static inline void Serial_ShutDown(void)
+ 114:../../LUFA/Drivers/Peripheral/Serial.h **** 			{
+ 115:../../LUFA/Drivers/Peripheral/Serial.h **** 				UCSR1B = 0;
+ 116:../../LUFA/Drivers/Peripheral/Serial.h **** 				UCSR1A = 0;
+ 117:../../LUFA/Drivers/Peripheral/Serial.h **** 				UCSR1C = 0;
+ 118:../../LUFA/Drivers/Peripheral/Serial.h **** 
+ 119:../../LUFA/Drivers/Peripheral/Serial.h **** 				UBRR1  = 0;
+ 120:../../LUFA/Drivers/Peripheral/Serial.h **** 				
+ 121:../../LUFA/Drivers/Peripheral/Serial.h **** 				DDRD  &= ~(1 << 3);
+ 122:../../LUFA/Drivers/Peripheral/Serial.h **** 				PORTD &= ~(1 << 2);
+ 123:../../LUFA/Drivers/Peripheral/Serial.h **** 			}
+ 124:../../LUFA/Drivers/Peripheral/Serial.h **** 
+ 125:../../LUFA/Drivers/Peripheral/Serial.h **** 			/** Indicates whether a character has been received through the USART.
+ 126:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *
+ 127:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *  \return Boolean true if a character has been received, false otherwise.
+ 128:../../LUFA/Drivers/Peripheral/Serial.h **** 			 */
+ 129:../../LUFA/Drivers/Peripheral/Serial.h **** 			static inline bool Serial_IsCharReceived(void) ATTR_WARN_UNUSED_RESULT ATTR_ALWAYS_INLINE;
+ 130:../../LUFA/Drivers/Peripheral/Serial.h **** 			static inline bool Serial_IsCharReceived(void)
+ 131:../../LUFA/Drivers/Peripheral/Serial.h **** 			{
+ 132:../../LUFA/Drivers/Peripheral/Serial.h **** 				return ((UCSR1A & (1 << RXC1)) ? true : false);
+ 133:../../LUFA/Drivers/Peripheral/Serial.h **** 			}
+ 134:../../LUFA/Drivers/Peripheral/Serial.h **** 			
+ 135:../../LUFA/Drivers/Peripheral/Serial.h **** 			/** Transmits a given byte through the USART.
+ 136:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *
+ 137:../../LUFA/Drivers/Peripheral/Serial.h **** 			 *  \param[in] DataByte  Byte to transmit through the USART.
+ 138:../../LUFA/Drivers/Peripheral/Serial.h **** 			 */
+ 139:../../LUFA/Drivers/Peripheral/Serial.h **** 			static inline void Serial_TxByte(const char DataByte) ATTR_ALWAYS_INLINE;
+ 140:../../LUFA/Drivers/Peripheral/Serial.h **** 			static inline void Serial_TxByte(const char DataByte)
+ 141:../../LUFA/Drivers/Peripheral/Serial.h **** 			{
+ 142:../../LUFA/Drivers/Peripheral/Serial.h **** 				while (!(UCSR1A & (1 << UDRE1)));
+ 541               		.loc 4 142 0
+ 542 00e2 9091 C800 		lds r25,200
+ 543 00e6 95FF      		sbrs r25,5
+ 544 00e8 00C0      		rjmp .L22
+ 143:../../LUFA/Drivers/Peripheral/Serial.h **** 				UDR1 = DataByte;
+ 545               		.loc 4 143 0
+ 546 00ea 8093 CE00 		sts 206,r24
+ 547               	.LVL49:
+ 548               	.LBE144:
+ 549               	.LBE143:
+ 550               	.LBB145:
+ 551               	.LBB146:
+  75:./Board/LEDs.h **** 				PORTD &= ~LEDMask;
+ 552               		.loc 5 75 0
+ 553 00ee 5E98      		cbi 0xb,6
+ 554               	.LBE146:
+ 555               	.LBE145:
+ 130:Arduino-usbserial.c **** 			PulseMSRemaining.RxLEDPulse = TX_RX_LED_PULSE_MS;
+ 556               		.loc 3 130 0
+ 557 00f0 D093 0000 		sts PulseMSRemaining+1,r29
+ 558               	.LVL50:
+ 559               	.L20:
+ 133:Arduino-usbserial.c **** 		CDC_Device_USBTask(&VirtualSerial_CDC_Interface);
+ 560               		.loc 3 133 0
+ 561 00f4 80E0      		ldi r24,lo8(VirtualSerial_CDC_Interface)
+ 562 00f6 90E0      		ldi r25,hi8(VirtualSerial_CDC_Interface)
+ 563 00f8 0E94 0000 		call CDC_Device_USBTask
+ 564               	.LVL51:
+ 134:Arduino-usbserial.c **** 		USB_USBTask();
+ 565               		.loc 3 134 0
+ 566 00fc 0E94 0000 		call USB_USBTask
+ 567               	.LVL52:
+ 568               	.LBE112:
+ 135:Arduino-usbserial.c **** 	}
+ 569               		.loc 3 135 0
+ 570 0100 00C0      		rjmp .L23
+ 571               		.cfi_endproc
+ 572               	.LFE85:
+ 574               		.section	.text.EVENT_USB_Device_ConfigurationChanged,"ax",@progbits
+ 575               	.global	EVENT_USB_Device_ConfigurationChanged
+ 577               	EVENT_USB_Device_ConfigurationChanged:
+ 578               	.LFB87:
+ 160:Arduino-usbserial.c **** }
+ 161:Arduino-usbserial.c **** 
+ 162:Arduino-usbserial.c **** /** Event handler for the library USB Configuration Changed event. */
+ 163:Arduino-usbserial.c **** void EVENT_USB_Device_ConfigurationChanged(void)
+ 164:Arduino-usbserial.c **** {
+ 579               		.loc 3 164 0
+ 580               		.cfi_startproc
+ 581               	/* prologue: function */
+ 582               	/* frame size = 0 */
+ 583               	/* stack size = 0 */
+ 584               	.L__stack_usage = 0
+ 165:Arduino-usbserial.c **** 	CDC_Device_ConfigureEndpoints(&VirtualSerial_CDC_Interface);
+ 585               		.loc 3 165 0
+ 586 0000 80E0      		ldi r24,lo8(VirtualSerial_CDC_Interface)
+ 587 0002 90E0      		ldi r25,hi8(VirtualSerial_CDC_Interface)
+ 588 0004 0C94 0000 		jmp CDC_Device_ConfigureEndpoints
+ 589               	.LVL53:
+ 590               		.cfi_endproc
+ 591               	.LFE87:
+ 593               		.section	.text.EVENT_USB_Device_UnhandledControlRequest,"ax",@progbits
+ 594               	.global	EVENT_USB_Device_UnhandledControlRequest
+ 596               	EVENT_USB_Device_UnhandledControlRequest:
+ 597               	.LFB88:
+ 166:Arduino-usbserial.c **** }
+ 167:Arduino-usbserial.c **** 
+ 168:Arduino-usbserial.c **** /** Event handler for the library USB Unhandled Control Request event. */
+ 169:Arduino-usbserial.c **** void EVENT_USB_Device_UnhandledControlRequest(void)
+ 170:Arduino-usbserial.c **** {
+ 598               		.loc 3 170 0
+ 599               		.cfi_startproc
+ 600               	/* prologue: function */
+ 601               	/* frame size = 0 */
+ 602               	/* stack size = 0 */
+ 603               	.L__stack_usage = 0
+ 171:Arduino-usbserial.c **** 	CDC_Device_ProcessControlRequest(&VirtualSerial_CDC_Interface);
+ 604               		.loc 3 171 0
+ 605 0000 80E0      		ldi r24,lo8(VirtualSerial_CDC_Interface)
+ 606 0002 90E0      		ldi r25,hi8(VirtualSerial_CDC_Interface)
+ 607 0004 0C94 0000 		jmp CDC_Device_ProcessControlRequest
+ 608               	.LVL54:
+ 609               		.cfi_endproc
+ 610               	.LFE88:
+ 612               		.section	.text.EVENT_CDC_Device_LineEncodingChanged,"ax",@progbits
+ 613               	.global	EVENT_CDC_Device_LineEncodingChanged
+ 615               	EVENT_CDC_Device_LineEncodingChanged:
+ 616               	.LFB89:
+ 172:Arduino-usbserial.c **** }
+ 173:Arduino-usbserial.c **** 
+ 174:Arduino-usbserial.c **** /** Event handler for the CDC Class driver Line Encoding Changed event.
+ 175:Arduino-usbserial.c ****  *
+ 176:Arduino-usbserial.c ****  *  \param[in] CDCInterfaceInfo  Pointer to the CDC class interface configuration structure being r
+ 177:Arduino-usbserial.c ****  */
+ 178:Arduino-usbserial.c **** void EVENT_CDC_Device_LineEncodingChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo)
+ 179:Arduino-usbserial.c **** {
+ 617               		.loc 3 179 0
+ 618               		.cfi_startproc
+ 619               	.LVL55:
+ 620 0000 1F93      		push r17
+ 621               	.LCFI0:
+ 622               		.cfi_def_cfa_offset 3
+ 623               		.cfi_offset 17, -2
+ 624 0002 CF93      		push r28
+ 625               	.LCFI1:
+ 626               		.cfi_def_cfa_offset 4
+ 627               		.cfi_offset 28, -3
+ 628 0004 DF93      		push r29
+ 629               	.LCFI2:
+ 630               		.cfi_def_cfa_offset 5
+ 631               		.cfi_offset 29, -4
+ 632               	/* prologue: function */
+ 633               	/* frame size = 0 */
+ 634               	/* stack size = 3 */
+ 635               	.L__stack_usage = 3
+ 636 0006 EC01      		movw r28,r24
+ 637               	.LVL56:
+ 180:Arduino-usbserial.c **** 	uint8_t ConfigMask = 0;
+ 181:Arduino-usbserial.c **** 
+ 182:Arduino-usbserial.c **** 	switch (CDCInterfaceInfo->State.LineEncoding.ParityType)
+ 638               		.loc 3 182 0
+ 639 0008 8C89      		ldd r24,Y+20
+ 640               	.LVL57:
+ 641 000a 8130      		cpi r24,lo8(1)
+ 642 000c 01F0      		breq .L47
+ 643 000e 8230      		cpi r24,lo8(2)
+ 644 0010 01F0      		breq .L39
+ 180:Arduino-usbserial.c **** 	uint8_t ConfigMask = 0;
+ 645               		.loc 3 180 0
+ 646 0012 10E0      		ldi r17,0
+ 647 0014 00C0      		rjmp .L38
+ 648               	.L39:
+ 649               	.LVL58:
+ 183:Arduino-usbserial.c **** 	{
+ 184:Arduino-usbserial.c **** 		case CDC_PARITY_Odd:
+ 185:Arduino-usbserial.c **** 			ConfigMask = ((1 << UPM11) | (1 << UPM10));		
+ 186:Arduino-usbserial.c **** 			break;
+ 187:Arduino-usbserial.c **** 		case CDC_PARITY_Even:
+ 188:Arduino-usbserial.c **** 			ConfigMask = (1 << UPM11);		
+ 650               		.loc 3 188 0
+ 651 0016 10E2      		ldi r17,lo8(32)
+ 189:Arduino-usbserial.c **** 			break;
+ 652               		.loc 3 189 0
+ 653 0018 00C0      		rjmp .L38
+ 654               	.LVL59:
+ 655               	.L47:
+ 185:Arduino-usbserial.c **** 			ConfigMask = ((1 << UPM11) | (1 << UPM10));		
+ 656               		.loc 3 185 0
+ 657 001a 10E3      		ldi r17,lo8(48)
+ 658               	.LVL60:
+ 659               	.L38:
+ 190:Arduino-usbserial.c **** 	}
+ 191:Arduino-usbserial.c **** 
+ 192:Arduino-usbserial.c **** 	if (CDCInterfaceInfo->State.LineEncoding.CharFormat == CDC_LINEENCODING_TwoStopBits)
+ 660               		.loc 3 192 0
+ 661 001c 8B89      		ldd r24,Y+19
+ 662 001e 8230      		cpi r24,lo8(2)
+ 663 0020 01F4      		brne .L40
+ 193:Arduino-usbserial.c **** 	  ConfigMask |= (1 << USBS1);
+ 664               		.loc 3 193 0
+ 665 0022 1860      		ori r17,lo8(8)
+ 666               	.LVL61:
+ 667               	.L40:
+ 194:Arduino-usbserial.c **** 
+ 195:Arduino-usbserial.c **** 	switch (CDCInterfaceInfo->State.LineEncoding.DataBits)
+ 668               		.loc 3 195 0
+ 669 0024 8D89      		ldd r24,Y+21
+ 670 0026 8730      		cpi r24,lo8(7)
+ 671 0028 01F0      		breq .L42
+ 672 002a 8830      		cpi r24,lo8(8)
+ 673 002c 01F0      		breq .L43
+ 674 002e 8630      		cpi r24,lo8(6)
+ 675 0030 01F4      		brne .L41
+ 196:Arduino-usbserial.c **** 	{
+ 197:Arduino-usbserial.c **** 		case 6:
+ 198:Arduino-usbserial.c **** 			ConfigMask |= (1 << UCSZ10);
+ 676               		.loc 3 198 0
+ 677 0032 1260      		ori r17,lo8(2)
+ 678               	.LVL62:
+ 199:Arduino-usbserial.c **** 			break;
+ 679               		.loc 3 199 0
+ 680 0034 00C0      		rjmp .L41
+ 681               	.L42:
+ 200:Arduino-usbserial.c **** 		case 7:
+ 201:Arduino-usbserial.c **** 			ConfigMask |= (1 << UCSZ11);
+ 682               		.loc 3 201 0
+ 683 0036 1460      		ori r17,lo8(4)
+ 684               	.LVL63:
+ 202:Arduino-usbserial.c **** 			break;
+ 685               		.loc 3 202 0
+ 686 0038 00C0      		rjmp .L41
+ 687               	.L43:
+ 203:Arduino-usbserial.c **** 		case 8:
+ 204:Arduino-usbserial.c **** 			ConfigMask |= ((1 << UCSZ11) | (1 << UCSZ10));
+ 688               		.loc 3 204 0
+ 689 003a 1660      		ori r17,lo8(6)
+ 690               	.LVL64:
+ 691               	.L41:
+ 205:Arduino-usbserial.c **** 			break;
+ 206:Arduino-usbserial.c **** 	}
+ 207:Arduino-usbserial.c **** 
+ 208:Arduino-usbserial.c **** 	/* Must turn off USART before reconfiguring it, otherwise incorrect operation may occur */
+ 209:Arduino-usbserial.c **** 	UCSR1B = 0;
+ 692               		.loc 3 209 0
+ 693 003c 1092 C900 		sts 201,__zero_reg__
+ 210:Arduino-usbserial.c **** 	UCSR1A = 0;
+ 694               		.loc 3 210 0
+ 695 0040 1092 C800 		sts 200,__zero_reg__
+ 211:Arduino-usbserial.c **** 	UCSR1C = 0;
+ 696               		.loc 3 211 0
+ 697 0044 1092 CA00 		sts 202,__zero_reg__
+ 212:Arduino-usbserial.c **** 
+ 213:Arduino-usbserial.c **** 	/* Special case 57600 baud for compatibility with the ATmega328 bootloader. */	
+ 214:Arduino-usbserial.c **** 	UBRR1  = (CDCInterfaceInfo->State.LineEncoding.BaudRateBPS == 57600)
+ 698               		.loc 3 214 0
+ 699 0048 2F85      		ldd r18,Y+15
+ 700 004a 3889      		ldd r19,Y+16
+ 701 004c 4989      		ldd r20,Y+17
+ 702 004e 5A89      		ldd r21,Y+18
+ 703 0050 2115      		cp r18,__zero_reg__
+ 704 0052 81EE      		ldi r24,-31
+ 705 0054 3807      		cpc r19,r24
+ 706 0056 4105      		cpc r20,__zero_reg__
+ 707 0058 5105      		cpc r21,__zero_reg__
+ 708 005a 01F0      		breq .L48
+ 215:Arduino-usbserial.c **** 			 ? SERIAL_UBBRVAL(CDCInterfaceInfo->State.LineEncoding.BaudRateBPS)
+ 216:Arduino-usbserial.c **** 			 : SERIAL_2X_UBBRVAL(CDCInterfaceInfo->State.LineEncoding.BaudRateBPS);	
+ 709               		.loc 3 216 0 discriminator 1
+ 710 005c CA01      		movw r24,r20
+ 711 005e B901      		movw r22,r18
+ 712 0060 9695      		lsr r25
+ 713 0062 8795      		ror r24
+ 714 0064 7795      		ror r23
+ 715 0066 6795      		ror r22
+ 716 0068 6058      		subi r22,-128
+ 717 006a 7B47      		sbci r23,123
+ 718 006c 814E      		sbci r24,-31
+ 719 006e 9F4F      		sbci r25,-1
+ 720 0070 0E94 0000 		call __udivmodsi4
+ 214:Arduino-usbserial.c **** 	UBRR1  = (CDCInterfaceInfo->State.LineEncoding.BaudRateBPS == 57600)
+ 721               		.loc 3 214 0 discriminator 1
+ 722 0074 2150      		subi r18,1
+ 723 0076 3109      		sbc r19,__zero_reg__
+ 724 0078 00C0      		rjmp .L45
+ 725               	.L48:
+ 214:Arduino-usbserial.c **** 	UBRR1  = (CDCInterfaceInfo->State.LineEncoding.BaudRateBPS == 57600)
+ 726               		.loc 3 214 0 is_stmt 0
+ 727 007a 20E1      		ldi r18,lo8(16)
+ 728 007c 30E0      		ldi r19,0
+ 729               	.L45:
+ 214:Arduino-usbserial.c **** 	UBRR1  = (CDCInterfaceInfo->State.LineEncoding.BaudRateBPS == 57600)
+ 730               		.loc 3 214 0 discriminator 2
+ 731 007e 3093 CD00 		sts 204+1,r19
+ 732 0082 2093 CC00 		sts 204,r18
+ 217:Arduino-usbserial.c **** 
+ 218:Arduino-usbserial.c **** 	UCSR1C = ConfigMask;
+ 733               		.loc 3 218 0 is_stmt 1 discriminator 2
+ 734 0086 1093 CA00 		sts 202,r17
+ 219:Arduino-usbserial.c **** 	UCSR1A = (CDCInterfaceInfo->State.LineEncoding.BaudRateBPS == 57600) ? 0 : (1 << U2X1);
+ 735               		.loc 3 219 0 discriminator 2
+ 736 008a 8F85      		ldd r24,Y+15
+ 737 008c 9889      		ldd r25,Y+16
+ 738 008e A989      		ldd r26,Y+17
+ 739 0090 BA89      		ldd r27,Y+18
+ 740 0092 8115      		cp r24,__zero_reg__
+ 741 0094 914E      		sbci r25,-31
+ 742 0096 A105      		cpc r26,__zero_reg__
+ 743 0098 B105      		cpc r27,__zero_reg__
+ 744 009a 01F4      		brne .L49
+ 745               		.loc 3 219 0 is_stmt 0
+ 746 009c 80E0      		ldi r24,0
+ 747 009e 00C0      		rjmp .L46
+ 748               	.L49:
+ 749 00a0 82E0      		ldi r24,lo8(2)
+ 750               	.L46:
+ 751               		.loc 3 219 0 discriminator 3
+ 752 00a2 8093 C800 		sts 200,r24
+ 220:Arduino-usbserial.c **** 	UCSR1B = ((1 << RXCIE1) | (1 << TXEN1) | (1 << RXEN1));
+ 753               		.loc 3 220 0 is_stmt 1 discriminator 3
+ 754 00a6 88E9      		ldi r24,lo8(-104)
+ 755 00a8 8093 C900 		sts 201,r24
+ 756               	/* epilogue start */
+ 221:Arduino-usbserial.c **** }
+ 757               		.loc 3 221 0 discriminator 3
+ 758 00ac DF91      		pop r29
+ 759 00ae CF91      		pop r28
+ 760               	.LVL65:
+ 761 00b0 1F91      		pop r17
+ 762               	.LVL66:
+ 763 00b2 0895      		ret
+ 764               		.cfi_endproc
+ 765               	.LFE89:
+ 767               		.section	.text.__vector_23,"ax",@progbits
+ 768               	.global	__vector_23
+ 770               	__vector_23:
+ 771               	.LFB90:
+ 222:Arduino-usbserial.c **** 
+ 223:Arduino-usbserial.c **** /** ISR to manage the reception of data from the serial port, placing received bytes into a circula
+ 224:Arduino-usbserial.c ****  *  for later transmission to the host.
+ 225:Arduino-usbserial.c ****  */
+ 226:Arduino-usbserial.c **** ISR(USART1_RX_vect, ISR_BLOCK)
+ 227:Arduino-usbserial.c **** {
+ 772               		.loc 3 227 0
+ 773               		.cfi_startproc
+ 774 0000 1F92      		push r1
+ 775               	.LCFI3:
+ 776               		.cfi_def_cfa_offset 3
+ 777               		.cfi_offset 1, -2
+ 778 0002 0F92      		push r0
+ 779               	.LCFI4:
+ 780               		.cfi_def_cfa_offset 4
+ 781               		.cfi_offset 0, -3
+ 782 0004 0FB6      		in r0,__SREG__
+ 783 0006 0F92      		push r0
+ 784 0008 1124      		clr __zero_reg__
+ 785 000a 2F93      		push r18
+ 786               	.LCFI5:
+ 787               		.cfi_def_cfa_offset 5
+ 788               		.cfi_offset 18, -4
+ 789 000c 3F93      		push r19
+ 790               	.LCFI6:
+ 791               		.cfi_def_cfa_offset 6
+ 792               		.cfi_offset 19, -5
+ 793 000e 4F93      		push r20
+ 794               	.LCFI7:
+ 795               		.cfi_def_cfa_offset 7
+ 796               		.cfi_offset 20, -6
+ 797 0010 5F93      		push r21
+ 798               	.LCFI8:
+ 799               		.cfi_def_cfa_offset 8
+ 800               		.cfi_offset 21, -7
+ 801 0012 6F93      		push r22
+ 802               	.LCFI9:
+ 803               		.cfi_def_cfa_offset 9
+ 804               		.cfi_offset 22, -8
+ 805 0014 7F93      		push r23
+ 806               	.LCFI10:
+ 807               		.cfi_def_cfa_offset 10
+ 808               		.cfi_offset 23, -9
+ 809 0016 8F93      		push r24
+ 810               	.LCFI11:
+ 811               		.cfi_def_cfa_offset 11
+ 812               		.cfi_offset 24, -10
+ 813 0018 9F93      		push r25
+ 814               	.LCFI12:
+ 815               		.cfi_def_cfa_offset 12
+ 816               		.cfi_offset 25, -11
+ 817 001a AF93      		push r26
+ 818               	.LCFI13:
+ 819               		.cfi_def_cfa_offset 13
+ 820               		.cfi_offset 26, -12
+ 821 001c BF93      		push r27
+ 822               	.LCFI14:
+ 823               		.cfi_def_cfa_offset 14
+ 824               		.cfi_offset 27, -13
+ 825 001e EF93      		push r30
+ 826               	.LCFI15:
+ 827               		.cfi_def_cfa_offset 15
+ 828               		.cfi_offset 30, -14
+ 829 0020 FF93      		push r31
+ 830               	.LCFI16:
+ 831               		.cfi_def_cfa_offset 16
+ 832               		.cfi_offset 31, -15
+ 833               	/* prologue: Signal */
+ 834               	/* frame size = 0 */
+ 835               	/* stack size = 15 */
+ 836               	.L__stack_usage = 15
+ 228:Arduino-usbserial.c **** 	uint8_t ReceivedByte = UDR1;
+ 837               		.loc 3 228 0
+ 838 0022 6091 CE00 		lds r22,206
+ 839               	.LVL67:
+ 229:Arduino-usbserial.c **** 
+ 230:Arduino-usbserial.c **** 	if (USB_DeviceState == DEVICE_STATE_Configured)
+ 840               		.loc 3 230 0
+ 841 0026 8EB3      		in r24,0x1e
+ 842 0028 8430      		cpi r24,lo8(4)
+ 843 002a 01F4      		brne .L50
+ 231:Arduino-usbserial.c **** 	  RingBuffer_Insert(&USARTtoUSB_Buffer, ReceivedByte);
+ 844               		.loc 3 231 0
+ 845 002c 80E0      		ldi r24,lo8(USARTtoUSB_Buffer)
+ 846 002e 90E0      		ldi r25,hi8(USARTtoUSB_Buffer)
+ 847 0030 0E94 0000 		call RingBuffer_Insert
+ 848               	.LVL68:
+ 849               	.L50:
+ 850               	/* epilogue start */
+ 232:Arduino-usbserial.c **** }
+ 851               		.loc 3 232 0
+ 852 0034 FF91      		pop r31
+ 853 0036 EF91      		pop r30
+ 854 0038 BF91      		pop r27
+ 855 003a AF91      		pop r26
+ 856 003c 9F91      		pop r25
+ 857 003e 8F91      		pop r24
+ 858 0040 7F91      		pop r23
+ 859 0042 6F91      		pop r22
+ 860 0044 5F91      		pop r21
+ 861 0046 4F91      		pop r20
+ 862 0048 3F91      		pop r19
+ 863 004a 2F91      		pop r18
+ 864 004c 0F90      		pop r0
+ 865 004e 0FBE      		out __SREG__,r0
+ 866 0050 0F90      		pop r0
+ 867 0052 1F90      		pop r1
+ 868 0054 1895      		reti
+ 869               		.cfi_endproc
+ 870               	.LFE90:
+ 872               		.section	.text.EVENT_CDC_Device_ControLineStateChanged,"ax",@progbits
+ 873               	.global	EVENT_CDC_Device_ControLineStateChanged
+ 875               	EVENT_CDC_Device_ControLineStateChanged:
+ 876               	.LFB91:
+ 233:Arduino-usbserial.c **** 
+ 234:Arduino-usbserial.c **** /** Event handler for the CDC Class driver Host-to-Device Line Encoding Changed event.
+ 235:Arduino-usbserial.c ****  *
+ 236:Arduino-usbserial.c ****  *  \param[in] CDCInterfaceInfo  Pointer to the CDC class interface configuration structure being r
+ 237:Arduino-usbserial.c ****  */
+ 238:Arduino-usbserial.c **** void EVENT_CDC_Device_ControLineStateChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo)
+ 239:Arduino-usbserial.c **** {
+ 877               		.loc 3 239 0
+ 878               		.cfi_startproc
+ 879               	.LVL69:
+ 880               	/* prologue: function */
+ 881               	/* frame size = 0 */
+ 882               	/* stack size = 0 */
+ 883               	.L__stack_usage = 0
+ 240:Arduino-usbserial.c **** 	bool CurrentDTRState = (CDCInterfaceInfo->State.ControlLineStates.HostToDevice & CDC_CONTROL_LINE_
+ 884               		.loc 3 240 0
+ 885 0000 FC01      		movw r30,r24
+ 886 0002 8585      		ldd r24,Z+13
+ 887               	.LVL70:
+ 241:Arduino-usbserial.c **** 
+ 242:Arduino-usbserial.c **** 	if (CurrentDTRState)
+ 888               		.loc 3 242 0
+ 889 0004 80FF      		sbrs r24,0
+ 890 0006 00C0      		rjmp .L53
+ 243:Arduino-usbserial.c **** 	  AVR_RESET_LINE_PORT &= ~AVR_RESET_LINE_MASK;
+ 891               		.loc 3 243 0
+ 892 0008 5F98      		cbi 0xb,7
+ 893 000a 0895      		ret
+ 894               	.L53:
+ 244:Arduino-usbserial.c **** 	else
+ 245:Arduino-usbserial.c **** 	  AVR_RESET_LINE_PORT |= AVR_RESET_LINE_MASK;
+ 895               		.loc 3 245 0
+ 896 000c 5F9A      		sbi 0xb,7
+ 897 000e 0895      		ret
+ 898               		.cfi_endproc
+ 899               	.LFE91:
+ 901               	.global	VirtualSerial_CDC_Interface
+ 902               		.data
+ 905               	VirtualSerial_CDC_Interface:
+ 906 0000 00        		.byte	0
+ 907 0001 03        		.byte	3
+ 908 0002 4000      		.word	64
+ 909 0004 00        		.byte	0
+ 910 0005 04        		.byte	4
+ 911 0006 4000      		.word	64
+ 912 0008 00        		.byte	0
+ 913 0009 02        		.byte	2
+ 914 000a 0800      		.word	8
+ 915 000c 00        		.byte	0
+ 916 000d 0000 0000 		.zero	9
+ 916      0000 0000 
+ 916      00
+ 917               		.comm	PulseMSRemaining,3,1
+ 918               		.comm	USARTtoUSB_Buffer,133,1
+ 919               		.comm	USBtoUSART_Buffer,133,1
+ 920               		.text
+ 921               	.Letext0:
+ 922               		.file 6 "/usr/lib/avr/include/stdint.h"
+ 923               		.file 7 "../../LUFA/Drivers/USB/HighLevel/../LowLevel/Device.h"
+ 924               		.file 8 "../../LUFA/Drivers/USB/Class/Device/../Common/CDC.h"
+ 925               		.file 9 "../../LUFA/Drivers/USB/Class/Device/CDC.h"
+ 926               		.file 10 "../../LUFA/Drivers/USB/HighLevel/../LowLevel/USBController.h"
+ 927               		.file 11 "../../LUFA/Drivers/USB/HighLevel/USBTask.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 Arduino-usbserial.c
+     /tmp/ccuiH9UY.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccuiH9UY.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccuiH9UY.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccuiH9UY.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccuiH9UY.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccuiH9UY.s:12     .text.RingBuffer_Insert:0000000000000000 RingBuffer_Insert
+     /tmp/ccuiH9UY.s:85     .text.RingBuffer_Remove:0000000000000000 RingBuffer_Remove
+     /tmp/ccuiH9UY.s:158    .text.SetupHardware:0000000000000000 SetupHardware
+     /tmp/ccuiH9UY.s:240    .text.startup.main:0000000000000000 main
+                            *COM*:0000000000000085 USBtoUSART_Buffer
+                            *COM*:0000000000000085 USARTtoUSB_Buffer
+     /tmp/ccuiH9UY.s:905    .data:0000000000000000 VirtualSerial_CDC_Interface
+                            *COM*:0000000000000003 PulseMSRemaining
+     /tmp/ccuiH9UY.s:577    .text.EVENT_USB_Device_ConfigurationChanged:0000000000000000 EVENT_USB_Device_ConfigurationChanged
+     /tmp/ccuiH9UY.s:596    .text.EVENT_USB_Device_UnhandledControlRequest:0000000000000000 EVENT_USB_Device_UnhandledControlRequest
+     /tmp/ccuiH9UY.s:615    .text.EVENT_CDC_Device_LineEncodingChanged:0000000000000000 EVENT_CDC_Device_LineEncodingChanged
+     /tmp/ccuiH9UY.s:770    .text.__vector_23:0000000000000000 __vector_23
+     /tmp/ccuiH9UY.s:875    .text.EVENT_CDC_Device_ControLineStateChanged:0000000000000000 EVENT_CDC_Device_ControLineStateChanged
+
+UNDEFINED SYMBOLS
+USB_Init
+CDC_Device_ReceiveByte
+CDC_Device_SendByte
+CDC_Device_USBTask
+USB_USBTask
+CDC_Device_ConfigureEndpoints
+CDC_Device_ProcessControlRequest
+__udivmodsi4
+__do_copy_data
+__do_clear_bss
